@@ -124,7 +124,12 @@ bool Chess::AI::runTurn()
     auto randomPiece = this->player->pieces[rand() % this->player->pieces.size()];
     std::string randomFile(1, (char)(((int)"a"[0]) + (rand() % 8)));
     int randomRank = (rand() % 8) + 1;
-    randomPiece->move(randomFile, randomRank);
+    
+
+	// Build initial state for this move
+	Chess::State initial( this->game );
+
+	randomPiece->move(randomFile, randomRank);
 
     return true; // to signify we are done with our turn.
 }

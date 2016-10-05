@@ -13,6 +13,9 @@ namespace Chess
     class Game;
     class GameManager;
     class AI;
+
+	// custom classes
+	class State;
 }
 
 #endif

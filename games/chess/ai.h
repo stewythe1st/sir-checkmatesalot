@@ -10,6 +10,7 @@
 #include "move.h"
 #include "piece.h"
 #include "player.h"
+#include "state.h"
 
 #include "../../joueur/baseAI.h"
 

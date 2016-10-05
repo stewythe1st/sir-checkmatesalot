@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="function_registry.h" />
+    <ClInclude Include="gamesRegistry.h" />
+    <ClInclude Include="games\chess\ai.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\chess.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\game.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\gameManager.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\gameObject.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\move.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\piece.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\player.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\registry.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\ansiColorCoder.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\baseAI.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\baseGame.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\baseGameManager.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\baseGameObject.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\basePlayer.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\client.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\deltaMergeable.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\errorCode.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="joueur\joueur.h">
+      <Filter>joueur</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\state.h">
+      <Filter>chess</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="games\chess\ai.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\game.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\gameManager.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\gameObject.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\move.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\piece.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\player.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="joueur\baseAI.cpp">
+      <Filter>joueur</Filter>
+    </ClCompile>
+    <ClCompile Include="joueur\baseGame.cpp">
+      <Filter>joueur</Filter>
+    </ClCompile>
+    <ClCompile Include="joueur\baseGameManager.cpp">
+      <Filter>joueur</Filter>
+    </ClCompile>
+    <ClCompile Include="joueur\baseGameObject.cpp">
+      <Filter>joueur</Filter>
+    </ClCompile>
+    <ClCompile Include="joueur\client.cpp">
+      <Filter>joueur</Filter>
+    </ClCompile>
+    <ClCompile Include="joueur\deltaMergeable.cpp">
+      <Filter>joueur</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\state.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="joueur">
+      <UniqueIdentifier>{de3320ac-2fca-41ac-bb4e-2bcf7cd81f1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="chess">
+      <UniqueIdentifier>{fb2cf2be-0d8b-44a1-9dc3-818877b7684c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
