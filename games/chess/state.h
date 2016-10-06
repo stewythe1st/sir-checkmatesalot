@@ -5,7 +5,21 @@
 #include "gameObject.h"
 #include <bitset>
 
+#define WHITE 1
+#define BLACK 0
+
 typedef std::bitset<64> Bitboard;
+
+struct Chess::CondensedMove 
+{
+	Bitboard diff;
+	Bitboard* parent;
+	CondensedMove(Bitboard* p, Bitboard d) {parent = p;	diff = d;};
+};
+
+int bitScanForward(unsigned long long bb);
+int getBitboardIdx(int rank, std::string* file);
+void print_bitboard(Bitboard* bitboard);
 
 class Chess::State : public Chess::GameObject 
 {
@@ -14,23 +28,27 @@ class Chess::State : public Chess::GameObject
 	protected:
 		
 	public:
-		Bitboard whitePawns;
-		Bitboard whiteKnights;
-		Bitboard whiteBishops;
-		Bitboard whiteRooks;
-		Bitboard whiteQueens;
-		Bitboard whiteKing;
+		Bitboard myPawns;
+		Bitboard myKnights;
+		Bitboard myBishops;
+		Bitboard myRooks;
+		Bitboard myQueens;
+		Bitboard myKing;
 
-		Bitboard blackPawns;
-		Bitboard blackKnights;
-		Bitboard blackBishops;
-		Bitboard blackRooks;
-		Bitboard blackQueens;
-		Bitboard blackKing;
+		Bitboard oppPawns;
+		Bitboard oppKnights;
+		Bitboard oppBishops;
+		Bitboard oppRooks;
+		Bitboard oppQueens;
+		Bitboard oppKing;
 
-		State(Chess::Game* game);
+		bool color;
+
+		State(Chess::Game* game, Chess::AI* ai);
 		State() {};
 		~State() {};
+
+		void Actions(std::vector<Chess::CondensedMove>& moves);
 
 };
 

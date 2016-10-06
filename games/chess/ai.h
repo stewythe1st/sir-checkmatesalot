@@ -14,7 +14,6 @@
 
 #include "../../joueur/baseAI.h"
 
-
 /// <summary>
 /// This the header file for where you build your AI for the Chess game.
 /// </summary>
@@ -61,6 +60,8 @@ class Chess::AI : public Joueur::BaseAI
         /// </summary>
         /// <returns>Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.</returns>
         bool runTurn();
+
+		bool executeMove(Chess::CondensedMove* move);
 };
 
 #endif

@@ -10,6 +10,7 @@
 // you can add addtional #includes(s) here.
 // <<-- /Creer-Merge: includes -->>
 
+
 /// <summary>
 /// Contains all details about a Piece's move in the game.
 /// </summary>

@@ -127,9 +127,38 @@ bool Chess::AI::runTurn()
     
 
 	// Build initial state for this move
-	Chess::State initial( this->game );
+	Chess::State initial( this->game, this );
+	std::vector<Chess::CondensedMove> moves;
 
-	randomPiece->move(randomFile, randomRank);
+	// Determine possible actions from initial
+	initial.Actions( moves );
+
+	// Pick a random action and execute it
+	executeMove(&moves[rand() % moves.size()] );
+
+	//randomPiece->move(randomFile, randomRank);
 
     return true; // to signify we are done with our turn.
+}
+
+bool Chess::AI::executeMove(Chess::CondensedMove* move) 
+{
+	std::vector<Chess::Piece*>::iterator piece = this->player->pieces.begin();
+	std::vector<Chess::Piece*>::iterator end = this->player->pieces.end();
+	//std::cout << "Chosen move: " << std::endl;
+	//print_bitboard(&move->diff);
+	for (piece; piece != end; piece++)
+	{
+		int idx = getBitboardIdx((*piece)->rank, &(*piece)->file);
+		if (move->diff.test(idx))
+		{
+			//std::cout << "Found at idx: " << idx << std::endl;
+			int to_idx = bitScanForward(move->diff.reset(idx).to_ullong());
+			//std::cout << "Moving to idx: " << to_idx << std::endl;
+			std::string to_file(1,(char)(to_idx%8)+'a');
+			int to_rank = 1+to_idx/8;
+			return (*piece)->move(to_file, to_rank, "Queen");
+		}
+	}
+	return false;
 }

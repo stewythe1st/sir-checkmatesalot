@@ -7,6 +7,7 @@ namespace Chess
 {
     class GameObject;
     class Move;
+	struct CondensedMove;
     class Piece;
     class Player;
 
