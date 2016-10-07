@@ -1,32 +1,56 @@
+/**************************************************************
+* state.h
+* Declarations for the chess AI state class
+* CS5400, FS 2016
+* Stuart Miller
+**************************************************************/
 #ifndef JOUEUR_CHESS_STATE_H
 #define JOUEUR_CHESS_STATE_H
 
+/******************************************************
+* Includes
+******************************************************/
 #include "chess.h"
 #include "gameObject.h"
 #include <bitset>
 
+
+/******************************************************
+* Compiler Constants
+******************************************************/
 #define WHITE 1
 #define BLACK 0
 
-typedef std::bitset<64> Bitboard;
 
-struct Chess::CondensedMove 
-{
+/******************************************************
+* Types
+******************************************************/
+typedef std::bitset<64> Bitboard;
+struct Chess::CondensedMove
+	{
 	Bitboard diff;
 	Bitboard* parent;
-	CondensedMove(Bitboard* p, Bitboard d) {parent = p;	diff = d;};
-};
+	CondensedMove( Bitboard* p, Bitboard d ) { parent = p;	diff = d; };
+	};
 
-int bitScanForward(unsigned long long bb);
-int getBitboardIdx(int rank, std::string* file);
-void print_bitboard(Bitboard* bitboard);
 
-class Chess::State : public Chess::GameObject 
-{
+/******************************************************
+* Public Utility Functions
+******************************************************/
+int bitScanForward( Bitboard bb );
+int getBitboardIdx( int rank, std::string* file );
+void print_bitboard( Bitboard* bitboard );
+
+
+/******************************************************
+* State Class
+******************************************************/
+class Chess::State: public Chess::GameObject
+	{
 	friend Chess::GameManager;
 
 	protected:
-		
+
 	public:
 		Bitboard myPawns;
 		Bitboard myKnights;
@@ -44,12 +68,12 @@ class Chess::State : public Chess::GameObject
 
 		bool color;
 
-		State(Chess::Game* game, Chess::AI* ai);
+		State( Chess::Game* game, Chess::AI* ai );
 		State() {};
 		~State() {};
 
-		void Actions(std::vector<Chess::CondensedMove>& moves);
+		void Actions( std::vector<Chess::CondensedMove>& moves );
 
-};
+	};
 
 #endif

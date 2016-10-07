@@ -141,24 +141,20 @@ bool Chess::AI::runTurn()
     return true; // to signify we are done with our turn.
 }
 
-bool Chess::AI::executeMove(Chess::CondensedMove* move) 
-{
+bool Chess::AI::executeMove( Chess::CondensedMove* move )
+	{
 	std::vector<Chess::Piece*>::iterator piece = this->player->pieces.begin();
 	std::vector<Chess::Piece*>::iterator end = this->player->pieces.end();
-	//std::cout << "Chosen move: " << std::endl;
-	//print_bitboard(&move->diff);
-	for (piece; piece != end; piece++)
-	{
-		int idx = getBitboardIdx((*piece)->rank, &(*piece)->file);
-		if (move->diff.test(idx))
+	for( piece; piece != end; piece++ )
 		{
-			//std::cout << "Found at idx: " << idx << std::endl;
-			int to_idx = bitScanForward(move->diff.reset(idx).to_ullong());
-			//std::cout << "Moving to idx: " << to_idx << std::endl;
-			std::string to_file(1,(char)(to_idx%8)+'a');
-			int to_rank = 1+to_idx/8;
-			return (*piece)->move(to_file, to_rank, "Queen");
+		int idx = getBitboardIdx( ( *piece )->rank, &( *piece )->file );
+		if( move->diff.test( idx ) )
+			{
+			int to_idx = bitScanForward( move->diff.reset( idx ) );
+			std::string to_file( 1, ( char )( to_idx % 8 ) + 'a' );
+			int to_rank = 1 + to_idx / 8;
+			return ( *piece )->move( to_file, to_rank, "Queen" );
+			}
 		}
-	}
 	return false;
-}
+	}
