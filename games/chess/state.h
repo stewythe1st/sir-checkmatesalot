@@ -76,10 +76,9 @@ class Chess::State: public Chess::GameObject
 		~State() {};
 
 		void Actions( std::vector<Chess::CondensedMove>& moves );
-		int isThreatened( int idx );
-		int isThreatened( int from_idx, int to_idx );
-		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, bool testCheck );
-		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx );
+		//int isThreatened( int idx );
+		int isThreatened( int idx, int to_idx, int from_idx );
+		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, Bitboard* piece );
 
 	};
 
