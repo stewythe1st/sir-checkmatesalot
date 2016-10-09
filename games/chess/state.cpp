@@ -102,6 +102,15 @@ Chess::State::State( Chess::AI* ai )
 		inCheck = true;
 		}		
 
+	// If Opp's last move was a double pawn step, we can en passant capture it
+	en_passant = -1;
+	if( ai->game->moves.size() > 0 )
+		{
+		Chess::Move* oppMove = ai->game->moves.back();
+		if( oppMove->piece->type == "Pawn" && ( std::abs( oppMove->fromRank - oppMove->toRank ) ) == 2 )
+			en_passant = getBitboardIdx( oppMove->toRank, &oppMove->toFile );
+		}
+
 	// Read in our pieces
 	piece = ai->player->pieces.begin();
 	end = ai->player->pieces.end();
@@ -199,7 +208,7 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	Bitboard temp;
 	Bitboard pieces;
 	Bitboard diffBitboard;
-	int idx;
+	int idx, new_idx;
 	int i;
 
 	/**************************************************
@@ -238,22 +247,39 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{
 		pieces.reset( idx );
-		/*if( !isValidIdx( idx + ( 2 * 8 * dir ) ) )
-			{
-			continue; //add stuff here later
-			}
-		else
-			{*/
-			if( ( ( idx + ( 7 * dir ) ) / 8 == ( ( idx / 8 ) + dir ) ) && allOpp.test( idx + ( 7 * dir ) ) && !allMy.test( idx + ( 7 * dir ) ) )
-				addMove( moves, idx, idx + 7 * dir, &myPawns );
-			if( !all.test( idx + ( 8 * dir ) ) )
-				addMove( moves, idx, idx + 8 * dir, &myPawns );
-			if( ( ( color == WHITE && idx / 8 == 1 ) || ( color == BLACK && idx / 8 == 6 ) ) && ( !all.test( idx + ( 16 * dir ) ) ) && ( !all.test( idx + ( 8 * dir ) ) ) )
-				addMove( moves, idx, idx + 16 * dir, &myPawns );
-			if( ( ( idx + ( 9 * dir ) ) / 8 == ( ( idx / 8 ) + dir ) ) && allOpp.test( idx + ( 9 * dir ) ) && !allMy.test( idx + ( 9 * dir ) ) )
-				addMove( moves, idx, idx + 9 * dir, &myPawns );
-			//}
+		new_idx = idx + ( 7 * dir );
+		if( allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( moves, idx, idx + 7 * dir, &myPawns );
+		new_idx = idx + ( 8 * dir );
+		if( !all.test( new_idx ) )
+			addMove( moves, idx, idx + 8 * dir, &myPawns );
+		new_idx = idx + ( 9 * dir );
+		if( allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( moves, idx, idx + 9 * dir, &myPawns );
 		}
+		if( ( color == WHITE && getRankNum( idx ) == 1 ) || ( color == BLACK && getRankNum( idx ) == 6 ) )
+			{
+			if( !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
+				addMove( moves, idx, idx + 16 * dir, &myPawns );
+			}
+		if( en_passant != -1 )
+			{
+			if( color == WHITE )
+				{
+				if( ( ( idx + 1 ) == en_passant ) && !all.test( idx + 9 ) )
+					addMove( moves, idx, idx + 9, &myPawns );
+				if( ( ( idx - 1 ) == en_passant ) && !all.test( idx + 7 ) )
+					addMove( moves, idx, idx + 7, &myPawns );
+				}
+			else
+				{
+				if( ( ( idx + 1 ) == en_passant ) && !all.test( idx - 7 ) )
+					addMove( moves, idx, idx - 7, &myPawns );
+				if( ( ( idx - 1 ) == en_passant ) && !all.test( idx - 9 ) )
+					addMove( moves, idx, idx - 9, &myPawns );
+				}
+			}
+			
 
 	/**************************************************
 	* Rook Move Validation
@@ -317,7 +343,6 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	/**************************************************
 	* Knight Move Validation
 	**************************************************/
-	int new_idx;
 	pieces = myKnights;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{

@@ -70,6 +70,7 @@ class Chess::State: public Chess::GameObject
 		bool color;
 		int invalid_from_idx;
 		int invalid_to_idx;
+		int en_passant;
 
 		State( Chess::AI* ai );
 		State() {};
