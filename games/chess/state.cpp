@@ -17,17 +17,18 @@
 #include <map>
 #include <cmath>
 
+#define DEBUG_PRINT false
 
 /******************************************************
 * Macros
 ******************************************************/
-#define inSameRow( x, y )		( ( x / 8 ) == ( y / 8 ) )
-#define rankDiff( x, y )		( abs( ( x / 8 ) - ( y / 8 ) ) )
-#define isValidIdx( x )			( ( x <= 63 ) && ( x >= 0 ) )
-#define oneRowCross( x, y )		( abs( ( x % 8 ) - ( y % 8 ) ) == 7 )
-#define twoRowCross( x, y )		( abs( ( x % 8 ) - ( y % 8 ) ) > 5 )
-#define getRankNum( x )			( x / 8 )
-#define getFileNum( x )			( x % 8 )
+#define inSameRow( x, y )		( ( ( x ) / 8 ) == ( ( y ) / 8 ) )
+#define rankDiff( x, y )		( abs( ( ( x ) / 8 ) - ( ( y ) / 8 ) ) )
+#define isValidIdx( x )			( ( ( x ) <= 63 ) && ( ( x ) >= 0 ) )
+#define oneRowCross( x, y )		( std::abs( ( ( x ) % 8 ) - ( ( y ) % 8 ) ) == 7 )
+#define twoRowCross( x, y )		( std::abs( ( ( x ) % 8 ) - ( ( y ) % 8 ) ) > 5 )
+#define getRankNum( x )			( ( x ) / 8 )
+#define getFileNum( x )			( ( x ) % 8 )
 #define testIdx( bb, idx )		( isValidIdx( idx ) ? bb.test( idx ) : false )
 
 
@@ -45,7 +46,7 @@ static const int index64[ 64 ] = {
 	25, 14, 19,  9, 13,  8,  7,  6
 	};
 static const int knightMoves[ 8 ]	= { -17, -15, -10, -6, 6, 10, 15, 17 };
-static const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
+const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
 
 /******************************************************
 * State Constructor
@@ -118,7 +119,7 @@ Chess::State::State( Chess::AI* ai )
 	
 	// Check for state repetition
 	std::vector<Chess::Move*> moves = ai->game->moves;
-	int moveSz = moves.size();	
+	int moveSz = moves.size();
 	if( moveSz >= 8 )
 		{
 		bool repetition = true;
@@ -201,11 +202,11 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	/**************************************************
 	* Look for moves to escape check
 	**************************************************/
-
 	if( inCheck )
 		{
 		std::cout << "We're in check" << std::endl;
 		idx = bitScanForward( myKing );
+
 		// Can king move out to escape?
 		for( i = 0; i < 8; i++ )
 			{
@@ -213,11 +214,13 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 				&& !allMy.test( idx + kingMoves[ i ] )
 				&& !oneRowCross( idx, idx + kingMoves[ i ] ) )
 				{
-				if( !testCheck( idx, idx + kingMoves[ i ] ) )
-					addMove( moves, idx, idx + kingMoves[ i ] );
+				if( isThreatened( idx, idx + kingMoves[ i ] ) == -1 )
+					addMove( moves, idx, idx + kingMoves[ i ], false );
 				}
-				std::cout << "  Done" << std::endl;
 			}
+
+		// Can we block the attacking piece?
+
 		return;
 		}
 
@@ -314,10 +317,11 @@ int bitScanForward( Bitboard bb )
 	}
 
 
-bool Chess::State::testCheck( int from_idx, int idx )
+int Chess::State::isThreatened( int idx ) { return this->isThreatened( idx, idx ); }
+int Chess::State::isThreatened( int from_idx, int idx )
 	{
-	std::cout << "Testing check at idx: " << idx << std::endl;
-	Bitboard allMy = myPawns | myKnights | myBishops | myRooks | myQueens;
+	if( DEBUG_PRINT ) std::cout << "Testing for threats to idx: " << idx << std::endl;
+	Bitboard allMy = myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
 	allMy.reset( from_idx );
 	Bitboard allOpp = oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
 	allOpp.reset( idx );
@@ -329,43 +333,42 @@ bool Chess::State::testCheck( int from_idx, int idx )
 		dir = -1;
 
 	// Check for attacking pawns
-	std::cout << " Looking for pawns" << std::endl;
+	if( DEBUG_PRINT ) std::cout << " Looking for pawns" << std::endl;
 	pieces = oppPawns;
 	pieces.reset( idx );
 	if( pieces.test( idx + ( 7 * dir ) ) && !oneRowCross( idx, idx + ( 7 * dir ) ) )
-		return true;
+		return idx + ( 7 * dir );
 	if( pieces.test( idx + ( 9 * dir ) ) && !oneRowCross( idx, idx + ( 9 * dir ) ) )
-		return true;
+		return idx + ( 7 * dir );
 
 	// Check for attacking bishops or queens (diagonally)
-	std::cout << " Looking for bishops" << std::endl;
+	if( DEBUG_PRINT ) std::cout << " Looking for bishops" << std::endl;
 	pieces = oppBishops | oppQueens;
 	pieces.reset( idx );
 	for( i = idx; ( isValidIdx( i + 9 ) && !testIdx( all, i ) && ( getFileNum( i ) != 7 ) ); i += 9 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i - 9 ) && !testIdx( all, i ) && ( getFileNum( i ) != 0 ) ); i -= 9 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i + 7 ) && !testIdx( all, i ) && ( getFileNum( i ) != 0 ) ); i += 7 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i - 7 ) && !testIdx( all, i ) && ( getFileNum( i ) != 7 ) ); i -= 7 ) {};
-	if( pieces.test( i ) ) return true;
-	std::cout << std::endl;
+	if( pieces.test( i ) ) return i;
 
 	// Check for attacking rooks or queens (obliques)
-	std::cout << " Looking for rooks" << std::endl;
+	if( DEBUG_PRINT ) std::cout << " Looking for rooks" << std::endl;
 	pieces = oppRooks | oppQueens;
 	pieces.reset( idx );
 	for( i = idx; ( isValidIdx( i + 8 ) && !all.test( i ) ); i += 8 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i - 8 ) && !all.test( i ) ); i -= 8 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i + 1 ) && !all.test( i ) ) && inSameRow( idx, i ); i += 1 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i - 1 ) && !all.test( i ) ) && inSameRow( idx, i ); i -= 1 ) {};
-	if( pieces.test( i ) ) return true;
+	if( pieces.test( i ) ) return i;
 
 	// Check for attacking knights
-	std::cout << " Looking for knights" << std::endl;
+	if( DEBUG_PRINT ) std::cout << " Looking for knights" << std::endl;
 	pieces = oppKnights;
 	pieces.reset( idx );
 	int new_idx;
@@ -373,21 +376,23 @@ bool Chess::State::testCheck( int from_idx, int idx )
 		{
 		new_idx = idx + knightMoves[ i ];
 		if( isValidIdx( new_idx ) && pieces.test( new_idx ) && !twoRowCross( idx, new_idx ) )
-			return true;
+			return new_idx;
 		}
 
-	std::cout << " We're safe at idx: " << idx << std::endl;
-	return false;
+	if( DEBUG_PRINT ) std::cout << " We're safe at idx: " << idx << std::endl;
+	return -1;
 	}
-
 void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx )
+	{ this->addMove( moves, from_idx, to_idx, true ); }
+void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, bool testCheck )
 	{
 	Bitboard diff = 0;
 	diff.set( from_idx );
 	diff.set( to_idx );
-	if( from_idx != invalid_from_idx && to_idx != invalid_to_idx	// see if this moves would cause repetition
-		/*&& !testCheck( bitScanForward( myKing ) )*/ )					// see if this moves allows king to be in check
+	if( from_idx != invalid_from_idx && to_idx != invalid_to_idx )				// see if this moves would cause repetition
 		{
+		if( testCheck && ( isThreatened( from_idx, bitScanForward( myKing ) ) != -1 ) )	// see if this moves allows king to be in check
+			return;
 		moves.emplace_back( &myPawns, diff );
 		}
 	return;
