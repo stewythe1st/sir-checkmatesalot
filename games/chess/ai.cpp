@@ -127,11 +127,14 @@ bool Chess::AI::runTurn()
     
 
 	// Build initial state for this move
-	Chess::State initial( this->game, this );
+	Chess::State initial( this );
 	std::vector<Chess::CondensedMove> moves;
 
 	// Determine possible actions from initial
 	initial.Actions( moves );
+
+	if( moves.size() == 0 )
+		std::cout << "No known moves" << std::endl;
 
 	// Pick a random action and execute it
 	executeMove(&moves[rand() % moves.size()] );
@@ -153,6 +156,8 @@ bool Chess::AI::executeMove( Chess::CondensedMove* move )
 			int to_idx = bitScanForward( move->diff.reset( idx ) );
 			std::string to_file( 1, ( char )( to_idx % 8 ) + 'a' );
 			int to_rank = 1 + to_idx / 8;
+			std::cout << " Moving " << ( *piece )->file << ( *piece )->rank
+				<< " to " << to_file << to_rank << std::endl;
 			return ( *piece )->move( to_file, to_rank, "Queen" );
 			}
 		}

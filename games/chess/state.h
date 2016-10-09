@@ -66,13 +66,18 @@ class Chess::State: public Chess::GameObject
 		Bitboard oppQueens;
 		Bitboard oppKing;
 
+		bool inCheck;
 		bool color;
+		int invalid_from_idx;
+		int invalid_to_idx;
 
-		State( Chess::Game* game, Chess::AI* ai );
+		State( Chess::AI* ai );
 		State() {};
 		~State() {};
 
 		void Actions( std::vector<Chess::CondensedMove>& moves );
+		bool testCheck( int from_idx, int to_idx );
+		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx );
 
 	};
 
