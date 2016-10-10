@@ -137,14 +137,14 @@ bool Chess::AI::runTurn()
 		std::cout << "No known moves" << std::endl;
 
 	// Pick a random action and execute it
-	executeMove(&moves[rand() % moves.size()] );
+	executeMove(&moves[rand() % moves.size()], moves );
 
 	//randomPiece->move(randomFile, randomRank);
 
     return true; // to signify we are done with our turn.
 }
 
-bool Chess::AI::executeMove( Chess::CondensedMove* move )
+bool Chess::AI::executeMove( Chess::CondensedMove* move, std::vector<Chess::CondensedMove> moves )
 	{
 	std::vector<Chess::Piece*>::iterator piece = this->player->pieces.begin();
 	std::vector<Chess::Piece*>::iterator end = this->player->pieces.end();
@@ -156,8 +156,25 @@ bool Chess::AI::executeMove( Chess::CondensedMove* move )
 			int to_idx = bitScanForward( move->diff.reset( idx ) );
 			std::string to_file( 1, ( char )( to_idx % 8 ) + 'a' );
 			int to_rank = 1 + to_idx / 8;
-			std::cout << " Moving " << ( *piece )->file << ( *piece )->rank
-				<< " to " << to_file << to_rank << std::endl;
+			std::cout << "Moving " << (*piece)->type << " at " << ( *piece )->file << ( *piece )->rank << " to " << to_file << to_rank << std::endl;
+			std::cout << "   Chosen from the following possible moves:" << std::endl;
+			std::vector<Chess::CondensedMove>::iterator it = moves.begin();
+			std::vector<Chess::CondensedMove>::iterator end = moves.end();
+			int move_from_idx, move_to_idx;
+			for( it; it != end; it++ )
+				{
+				Bitboard temp = *it->parent;
+				temp &= it->diff;
+				move_from_idx = bitScanForward( temp );
+				it->diff.reset( move_from_idx );
+				move_to_idx = bitScanForward( it->diff );
+				if( move_from_idx == idx )
+					{
+					std::string to_file2( 1, ( char )( move_to_idx % 8 ) + 'a' );
+					int to_rank2 = 1 + move_to_idx / 8;
+					std::cout << "    " << ( *piece )->file << ( *piece )->rank << " to " << to_file2 << to_rank2 << std::endl;
+					}
+				}
 			return ( *piece )->move( to_file, to_rank, "Queen" );
 			}
 		}

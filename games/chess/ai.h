@@ -61,7 +61,7 @@ class Chess::AI : public Joueur::BaseAI
         /// <returns>Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.</returns>
         bool runTurn();
 
-		bool executeMove(Chess::CondensedMove* move);
+		bool executeMove( Chess::CondensedMove * move, std::vector<Chess::CondensedMove> moves );
 };
 
 #endif

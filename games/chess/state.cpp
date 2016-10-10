@@ -243,11 +243,12 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 		new_idx = idx + ( 9 * dir );
 		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
 			addMove( moves, idx, new_idx, &myPawns );
-		}
 		if( ( color == WHITE && getRankNum( idx ) == 1 ) || ( color == BLACK && getRankNum( idx ) == 6 ) )
 			{
 			if( !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
+				{
 				addMove( moves, idx, idx + ( 16 * dir ), &myPawns );
+				}
 			}
 		if( en_passant != -1 )
 			{
@@ -266,6 +267,7 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 					addMove( moves, idx, idx - 9, &myPawns );
 				}
 			}
+		}
 			
 
 	/**************************************************
