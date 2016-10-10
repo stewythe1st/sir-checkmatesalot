@@ -17,7 +17,6 @@
 #include <map>
 #include <cmath>
 
-#define DEBUG_PRINT		( true )
 #define NOT_THREATENED	( -1 )
 
 /******************************************************
@@ -162,7 +161,7 @@ Chess::State::State( Chess::AI* ai )
 			}
 		if( repetition )
 			{
-			std::cout << "Warning! Risk of repetition!" << std::endl;
+			if( DEBUG_PRINT ) std::cout << "Warning! Risk of repetition!" << std::endl;
 			invalid_from_idx = getBitboardIdx( moves[ moveSz - 4 ]->fromRank, &moves[ moveSz - 4 ]->fromFile );
 			invalid_to_idx = getBitboardIdx( moves[ moveSz - 4 ]->toRank, &moves[ moveSz - 4 ]->toFile );
 			}
@@ -436,7 +435,6 @@ int bitScanForward( Bitboard bb )
 //int Chess::State::isThreatened( int idx ) { return this->isThreatened( idx, idx ); }
 int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 	{
-	if( DEBUG_PRINT ) std::cout << "Testing for threats to idx: " << idx << std::endl;
 	Bitboard allMy = myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
 	allMy.reset( from_idx );
 	allMy.set( to_idx );
@@ -451,7 +449,6 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 		dir = -1;
 
 	// Check for attacking pawns
-	if( DEBUG_PRINT ) std::cout << " Looking for pawns" << std::endl;
 	pieces = oppPawns;
 	pieces.reset( to_idx );
 	if( isValidIdx( idx + ( 7 * dir ) ) && pieces.test( idx + ( 7 * dir ) ) && !oneRowCross( idx, idx + ( 7 * dir ) ) )
@@ -460,7 +457,6 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 		return idx + ( 9 * dir );
 
 	// Check for attacking bishops or queens (diagonally)
-	if( DEBUG_PRINT ) std::cout << " Looking for bishops" << std::endl;
 	pieces = oppBishops | oppQueens;
 	pieces.reset( to_idx );
 	for( i = idx; ( isValidIdx( i + 9 ) && !testIdx( all, i ) && ( getFileNum( i ) != 7 ) ); i += 9 ) {};
@@ -473,7 +469,6 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 	if( pieces.test( i ) ) return i;
 
 	// Check for attacking rooks or queens (obliques)
-	if( DEBUG_PRINT ) std::cout << " Looking for rooks" << std::endl;
 	pieces = oppRooks | oppQueens;
 	pieces.reset( to_idx );
 	for( i = idx; ( isValidIdx( i + 8 ) && !all.test( i ) ); i += 8 ) {};
@@ -486,7 +481,6 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 	if( pieces.test( i ) ) return i;
 
 	// Check for attacking knights
-	if( DEBUG_PRINT ) std::cout << " Looking for knights" << std::endl;
 	pieces = oppKnights;
 	pieces.reset( to_idx );
 	int new_idx;
@@ -498,7 +492,6 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 		}
 
 	// Check for attacking kings (yes, I guess that is a thing...)
-	if( DEBUG_PRINT ) std::cout << " Looking for kings" << std::endl;
 	pieces = oppKing;
 	pieces.reset( to_idx );
 	for( i = 0; i < 8; i++ )
@@ -508,13 +501,12 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 			return new_idx;
 		}
 
-	if( DEBUG_PRINT ) std::cout << " We're safe at idx: " << idx << std::endl;
 	return NOT_THREATENED;
 	}
 
 void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, Bitboard* piece )
 	{
-	std::cout << "Testing move from " << from_idx << " to " << to_idx << ":   ";
+	if( DEBUG_PRINT ) std::cout << "Testing move from " << from_idx << " to " << to_idx << ":   ";
 	Bitboard diff = 0;
 	diff.set( from_idx );
 	diff.set( to_idx );
@@ -522,7 +514,7 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	// see if this moves would cause repetition
 	if( from_idx == invalid_from_idx && to_idx == invalid_to_idx )
 		{
-		std::cout << "Would cause repetition!" << std::endl;
+		if( DEBUG_PRINT ) std::cout << "Would cause repetition!" << std::endl;
 		return;
 		}
 
@@ -535,7 +527,7 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	int test;
 	if( test = isThreatened( kingIdx, to_idx, from_idx ) != NOT_THREATENED )
 		{
-		std::cout << "Puts King in check from idx: " << test << std::endl;
+		if( DEBUG_PRINT ) std::cout << "Puts King in check from idx: " << test << std::endl;
 		piece->reset( to_idx );
 		piece->set( from_idx );
 		return;
@@ -545,7 +537,7 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	piece->set( from_idx );
 	
 	// if we made it this far, the move is valid
-	std::cout << "Is valid!" << std::endl;
+	if( DEBUG_PRINT ) std::cout << "Is valid!" << std::endl;
 	moves.emplace_back( piece, diff );
 
 	return;
