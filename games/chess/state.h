@@ -71,6 +71,8 @@ class Chess::State: public Chess::GameObject
 		int invalid_from_idx;
 		int invalid_to_idx;
 		int en_passant;
+		bool canCastleA;
+		bool canCastleH;
 
 		State( Chess::AI* ai );
 		State() {};
