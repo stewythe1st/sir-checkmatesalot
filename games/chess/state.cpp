@@ -526,8 +526,8 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	piece->set( to_idx );
 	piece->reset( from_idx );
 	int kingIdx = ( ( piece == &myKing ) ? bitScanForward( *piece ) : bitScanForward( myKing ) );
-	int test;
-	if( test = isThreatened( kingIdx, to_idx, from_idx ) != NOT_THREATENED )
+	int test = isThreatened( kingIdx, to_idx, from_idx );
+	if( test != NOT_THREATENED )
 		{
 		if( DEBUG_PRINT ) std::cout << "Puts King in check from idx: " << test << std::endl;
 		piece->reset( to_idx );
@@ -540,7 +540,17 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	
 	// if we made it this far, the move is valid
 	if( DEBUG_PRINT ) std::cout << "Is valid!" << std::endl;
-	moves.emplace_back( piece, diff );
+	moves.emplace_back( piece, diff, calcScore(diff) );
 
 	return;
+	}
+
+int Chess::State::calcScore( Bitboard diff )
+	{
+	int score = ( myPawns^diff ).count() * PAWNVAL 
+			  + ( myKnights^diff ).count() * KNIGHTVAL
+			  + ( myBishops^diff ).count() * BISHOPVAL
+			  + ( myRooks^diff ).count() * ROOKVAL
+			  + ( myQueens^diff ).count() * QUEENVAL;
+	return score;
 	}

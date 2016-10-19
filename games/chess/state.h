@@ -18,9 +18,15 @@
 /******************************************************
 * Compiler Constants
 ******************************************************/
-#define WHITE 1
-#define BLACK 0
-#define DEBUG_PRINT	( false )
+#define WHITE		1
+#define BLACK		0
+#define DEBUG_PRINT	true
+#define QUEENVAL	9
+#define ROOKVAL		5
+#define BISHOPVAL	3
+#define KNIGHTVAL	3
+#define PAWNVAL		1
+
 
 /******************************************************
 * Types
@@ -30,7 +36,8 @@ struct Chess::CondensedMove
 	{
 	Bitboard diff;
 	Bitboard* parent;
-	CondensedMove( Bitboard* p, Bitboard d ) { parent = p;	diff = d; };
+	int score;
+	CondensedMove( Bitboard* p, Bitboard d, int s ) { parent = p;	diff = d; score = s; };
 	};
 
 
@@ -82,6 +89,8 @@ class Chess::State: public Chess::GameObject
 		//int isThreatened( int idx );
 		int isThreatened( int idx, int to_idx, int from_idx );
 		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, Bitboard* piece );
+
+		int calcScore( Bitboard diff );
 
 	};
 
