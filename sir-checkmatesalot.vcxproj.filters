@@ -63,6 +63,9 @@
     <ClInclude Include="games\chess\state.h">
       <Filter>chess</Filter>
     </ClInclude>
+    <ClInclude Include="games\chess\hueristicVal.h">
+      <Filter>chess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -26,6 +26,7 @@
     <ClInclude Include="games\chess\game.h" />
     <ClInclude Include="games\chess\gameManager.h" />
     <ClInclude Include="games\chess\gameObject.h" />
+    <ClInclude Include="games\chess\hueristicVal.h" />
     <ClInclude Include="games\chess\move.h" />
     <ClInclude Include="games\chess\piece.h" />
     <ClInclude Include="games\chess\player.h" />

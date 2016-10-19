@@ -14,6 +14,7 @@
 #include "player.h"
 #include "game.h"
 #include "piece.h"
+#include "hueristicVal.h"
 #include <map>
 #include <cmath>
 
@@ -540,17 +541,29 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	
 	// if we made it this far, the move is valid
 	if( DEBUG_PRINT ) std::cout << "Is valid!" << std::endl;
-	moves.emplace_back( piece, diff, calcScore(diff) );
+	moves.emplace_back( piece, diff, calcScore( diff, piece ) );
 
 	return;
 	}
 
-int Chess::State::calcScore( Bitboard diff )
+int Chess::State::calcScore( Bitboard diff, Bitboard* parent )
 	{
-	int score = ( myPawns^diff ).count() * PAWNVAL 
-			  + ( myKnights^diff ).count() * KNIGHTVAL
-			  + ( myBishops^diff ).count() * BISHOPVAL
-			  + ( myRooks^diff ).count() * ROOKVAL
-			  + ( myQueens^diff ).count() * QUEENVAL;
-	return score;
+	Bitboard* myBitboards[ 6 ]{ &myPawns, &myRooks, &myKnights, &myBishops, &myQueens, &myKing };
+	int squareVal = 0;
+	int i, idx;
+	Bitboard pieces;
+	for( i = 0; i < 6; i++ )
+		{
+		pieces = *myBitboards[ i ];
+		if( myBitboards[ i ] == parent )
+			pieces ^= diff;
+		while( ( idx = bitScanForward( pieces ) ) != -1 )
+			{
+			pieces.reset( idx );
+			if( color == WHITE )
+				idx = 63 - idx;
+			squareVal += ( squareVals[ i ] )[ idx ];
+			}
+		}
+	return squareVal;
 	}

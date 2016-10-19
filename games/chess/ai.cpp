@@ -10,6 +10,7 @@
 * Includes
 **************************************************************/
 #include "ai.h"
+#include <algorithm>
 
 
 /**************************************************************
@@ -91,6 +92,7 @@ bool Chess::AI::runTurn()
 		return true;
 		}
 	srand( time( NULL ) );
+	std::sort( moves.begin(), moves.end() );
 	executeMove(&moves[rand() % moves.size()], moves );
 
     return true;
