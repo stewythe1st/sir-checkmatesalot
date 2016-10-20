@@ -62,6 +62,7 @@ class Chess::AI : public Joueur::BaseAI
         bool runTurn();
 
 		bool executeMove( Chess::CondensedMove * move, std::vector<Chess::CondensedMove> moves );
+		void printMoves( std::vector<Chess::CondensedMove> moves );
 		void printBoard();
 };
 

@@ -211,61 +211,75 @@ void print_bitboard( Bitboard* bitboard )
 * Actions Function
 * Generates all possible moves from the current state
 ******************************************************/
-void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
+void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves, int player )
 	{
 	/**************************************************
 	* Declarations
 	**************************************************/
-	Bitboard allMy	= myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
-	Bitboard allOpp = oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
-	Bitboard all	= allMy | allOpp;
-	Bitboard temp;
-	Bitboard pieces;
-	Bitboard diffBitboard;
-	int idx, new_idx;
-	int i;
+	Bitboard allMy, allOpp, pieces;
+	Bitboard *pawns, *rooks, *knights, *bishops, *queens, *king;
+	int dir, idx, new_idx, i, pawnRank;
+	if( player == ME )
+		{
+		pawns	= &myPawns;
+		rooks	= &myRooks;
+		knights = &myKnights;
+		bishops = &myBishops;
+		queens	= &myQueens;
+		king	= &myKing;
+		allMy	= myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
+		allOpp	= oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
+		dir		= ( color == BLACK ? -1 : 1 );
+		pawnRank= ( color == BLACK ?  6 : 1 );
+		}
+	else
+		{
+		pawns	= &oppPawns;
+		rooks	= &oppRooks;
+		knights = &oppKnights;
+		bishops = &oppBishops;
+		queens	= &oppQueens;
+		king	= &oppKing;
+		allMy	= oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
+		allOpp	= myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
+		dir		= ( color == WHITE ? -1 : 1 );
+		pawnRank= ( color == WHITE ?  6 : 1 );
+		}
+	Bitboard all = allMy | allOpp;
 
 	/**************************************************
 	* Pawn Move Validation
 	**************************************************/
-	int dir = 1;
-	if( color == BLACK )
-		dir = -1;
-	pieces = myPawns;
+	pieces = *pawns;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{
 		pieces.reset( idx );
 		new_idx = idx + ( 7 * dir );
 		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( moves, idx, new_idx, &myPawns );
+			addMove( moves, idx, new_idx, pawns );
 		new_idx = idx + ( 8 * dir );
 		if( isValidIdx( new_idx ) && !all.test( new_idx ) )
-			addMove( moves, idx, new_idx, &myPawns );
+			addMove( moves, idx, new_idx, pawns );
 		new_idx = idx + ( 9 * dir );
 		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( moves, idx, new_idx, &myPawns );
-		if( ( color == WHITE && getRankNum( idx ) == 1 ) || ( color == BLACK && getRankNum( idx ) == 6 ) )
-			{
-			if( !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
-				{
-				addMove( moves, idx, idx + ( 16 * dir ), &myPawns );
-				}
-			}
+			addMove( moves, idx, new_idx, pawns );
+		if( getRankNum( idx ) == pawnRank && !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
+			addMove( moves, idx, idx + ( 16 * dir ), pawns );
 		if( en_passant != -1 )
 			{
 			if( color == WHITE )
 				{
 				if( ( ( idx + 1 ) == en_passant ) && !all.test( idx + 9 ) && !oneRowCross( idx, idx + 9 ) )
-					addMove( moves, idx, idx + 9, &myPawns );
+					addMove( moves, idx, idx + 9, pawns );
 				if( ( ( idx - 1 ) == en_passant ) && !all.test( idx + 7 ) && !oneRowCross( idx, idx + 7 ) )
-					addMove( moves, idx, idx + 7, &myPawns );
+					addMove( moves, idx, idx + 7, pawns );
 				}
 			else
 				{
 				if( ( ( idx + 1 ) == en_passant ) && !all.test( idx - 7 ) && !oneRowCross( idx, idx - 7 ) )
-					addMove( moves, idx, idx - 7, &myPawns );
+					addMove( moves, idx, idx - 7, pawns );
 				if( ( ( idx - 1 ) == en_passant ) && !all.test( idx - 9 ) && !oneRowCross( idx, idx - 9 ) )
-					addMove( moves, idx, idx - 9, &myPawns );
+					addMove( moves, idx, idx - 9, pawns );
 				}
 			}
 		}
@@ -274,28 +288,28 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	/**************************************************
 	* Rook Move Validation
 	**************************************************/
-	pieces = myRooks;
+	pieces = *rooks;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{
 		pieces.reset( idx );
 		for( i = idx + 8; ( isValidIdx( i ) && !allMy.test( i ) ); i += 8 )
 			{
-			addMove( moves, idx, i, &myRooks );
+			addMove( moves, idx, i, rooks );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 8; ( isValidIdx( i ) && !allMy.test( i ) ); i -= 8 )
 			{
-			addMove( moves, idx, i, &myRooks );
+			addMove( moves, idx, i, rooks );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx + 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i += 1 )
 			{
-			addMove( moves, idx, i, &myRooks );
+			addMove( moves, idx, i, rooks );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i -= 1 )
 			{
-			addMove( moves, idx, i, &myRooks );
+			addMove( moves, idx, i, rooks );
 			if( allOpp.test( i ) ) break;
 			}
 		}
@@ -303,77 +317,77 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	/**************************************************
 	* Bishop Move Validation
 	**************************************************/
-	pieces = myBishops;
+	pieces = *bishops;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
-	{
+		{
 		pieces.reset( idx );
 		for( i = idx + 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i += 9 )
 			{
-			addMove( moves, idx, i, &myBishops );
+			addMove( moves, idx, i, bishops );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i -= 9 )
 			{
-			addMove( moves, idx, i, &myBishops );
+			addMove( moves, idx, i, bishops );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx + 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i += 7 )
 			{
-			addMove( moves, idx, i, &myBishops );
+			addMove( moves, idx, i, bishops );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i -= 7 )
 			{
-			addMove( moves, idx, i, &myBishops );
+			addMove( moves, idx, i, bishops );
 			if( allOpp.test( i ) ) break;
 			}
-	}
+		}
 
 	/**************************************************
 	* Queen Move Validation
 	**************************************************/
-	pieces = myQueens;
+	pieces = *queens;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{
 		pieces.reset( idx );
 		for( i = idx + 8; ( isValidIdx( i ) && !allMy.test( i ) ); i += 8 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 8; ( isValidIdx( i ) && !allMy.test( i ) ); i -= 8 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx + 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i += 1 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i -= 1 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx + 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i += 9 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i -= 9 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx + 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i += 7 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		for( i = idx - 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i -= 7 )
 			{
-			addMove( moves, idx, i, &myQueens );
+			addMove( moves, idx, i, queens );
 			if( allOpp.test( i ) ) break;
 			}
 		}
@@ -381,7 +395,7 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 	/**************************************************
 	* Knight Move Validation
 	**************************************************/
-	pieces = myKnights;
+	pieces = *knights;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{
 		pieces.reset( idx );
@@ -389,33 +403,34 @@ void Chess::State::Actions( std::vector<Chess::CondensedMove>& moves )
 			{
 			new_idx = idx + knightMoves[ i ];
 			if( isValidIdx( new_idx ) && !allMy.test( new_idx ) && !twoRowCross( idx, new_idx ) )
-				addMove( moves, idx, new_idx, &myKnights );
+				addMove( moves, idx, new_idx, knights );
 			}
 		}
 
 	/**************************************************
 	* King Move Validation
 	**************************************************/
-	idx = bitScanForward( myKing );
+	idx = bitScanForward( *king );
 	for( i = 0; i < 8; i++ )
 		{
 		new_idx = idx + kingMoves[ i ];
 		if( isValidIdx( new_idx ) && !allMy.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( moves, idx, new_idx, &myKing );
+			addMove( moves, idx, new_idx, king );
 		}
+	/*
 	if( canCastleA && !isThreatened( idx, idx, idx ) )
 		{
 		for( i = idx - 1; getFileNum( i ) != 7 && all.test( i ); i-- ) {};
 		if( getFileNum( i ) == 0 )
-			addMove( moves, idx, i, &myKing );
+			addMove( moves, idx, i, king );
 		}
 	if( canCastleH && !isThreatened( idx, idx, idx ) )
 		{
 		for( i = idx + 1; getFileNum( i ) != 0 && all.test( i ); i++ ) {};
 		if( getFileNum( i ) == 7 )
-			addMove( moves, idx, i, &myKing );
+			addMove( moves, idx, i, king );
 		}
-
+	*/
 	return;
 	}
 
@@ -435,24 +450,50 @@ int bitScanForward( Bitboard bb )
 	}
 
 
-//int Chess::State::isThreatened( int idx ) { return this->isThreatened( idx, idx ); }
-int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
+/******************************************************
+* Test if index is Threatened
+* If square is under attack, returns the index of the
+* square found to be attacking it
+******************************************************/
+int Chess::State::isThreatened( int idx, int to_idx, int from_idx, int player )
 	{
-	Bitboard allMy = myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
-	allMy.reset( from_idx );
-	allMy.set( to_idx );
-	Bitboard allOpp = oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
-	allOpp.reset( to_idx );
+	Bitboard allMy, allOpp, pieces;
+	Bitboard *pawns, *rooks, *knights, *bishops, *queens, *king;
+	int dir;
+	if( player == ME )
+		{
+		pawns	= &oppPawns;
+		rooks	= &oppRooks;
+		knights = &oppKnights;
+		bishops = &oppBishops;
+		queens	= &oppQueens;
+		king	= &oppKing;
+		allMy	= myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
+		allOpp	= oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
+		dir		= ( color == BLACK ? -1 : 1 );
+		}
+	else
+		{
+		pawns	= &myPawns;
+		rooks	= &myRooks;
+		knights = &myKnights;
+		bishops = &myBishops;
+		queens	= &myQueens;
+		king	= &myKing;
+		allMy	= oppPawns | oppKnights | oppBishops | oppRooks | oppQueens | oppKing;
+		allOpp	= myPawns | myKnights | myBishops | myRooks | myQueens | myKing;
+		dir		= ( color == WHITE ? -1 : 1 );
+		}
 	Bitboard all = allMy | allOpp;
 	all.reset( idx );
-	Bitboard pieces;
+	allMy.reset( from_idx );
+	allMy.set( to_idx );
+	allOpp.reset( to_idx );
+
 	int i;
-	int dir = 1;
-	if( color == BLACK )
-		dir = -1;
 
 	// Check for attacking pawns
-	pieces = oppPawns;
+	pieces = *pawns;
 	pieces.reset( to_idx );
 	if( isValidIdx( idx + ( 7 * dir ) ) && pieces.test( idx + ( 7 * dir ) ) && !oneRowCross( idx, idx + ( 7 * dir ) ) )
 		return idx + ( 7 * dir );
@@ -460,7 +501,7 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 		return idx + ( 9 * dir );
 
 	// Check for attacking bishops or queens (diagonally)
-	pieces = oppBishops | oppQueens;
+	pieces = *bishops | *queens;
 	pieces.reset( to_idx );
 	for( i = idx; ( isValidIdx( i + 9 ) && !testIdx( all, i ) && ( getFileNum( i ) != 7 ) ); i += 9 ) {};
 	if( pieces.test( i ) ) return i;
@@ -472,19 +513,19 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 	if( pieces.test( i ) ) return i;
 
 	// Check for attacking rooks or queens (obliques)
-	pieces = oppRooks | oppQueens;
+	pieces = *rooks | *queens;
 	pieces.reset( to_idx );
 	for( i = idx; ( isValidIdx( i + 8 ) && !all.test( i ) ); i += 8 ) {};
 	if( pieces.test( i ) ) return i;
 	for( i = idx; ( isValidIdx( i - 8 ) && !all.test( i ) ); i -= 8 ) {};
 	if( pieces.test( i ) ) return i;
-	for( i = idx; ( isValidIdx( i + 1 ) && !all.test( i ) ) && inSameRow( idx, i ); i += 1 ) {};
+	for( i = idx; ( isValidIdx( i + 1 ) && !all.test( i ) ) && inSameRow( idx, i + 1 ); i += 1 ) {};
 	if( pieces.test( i ) ) return i;
-	for( i = idx; ( isValidIdx( i - 1 ) && !all.test( i ) ) && inSameRow( idx, i ); i -= 1 ) {};
+	for( i = idx; ( isValidIdx( i - 1 ) && !all.test( i ) ) && inSameRow( idx, i - 1 ); i -= 1 ) {};
 	if( pieces.test( i ) ) return i;
 
 	// Check for attacking knights
-	pieces = oppKnights;
+	pieces = *knights;
 	pieces.reset( to_idx );
 	int new_idx;
 	for( i = 0; i < 8; i++ )
@@ -495,7 +536,7 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx )
 		}
 
 	// Check for attacking kings (yes, I guess that is a thing...)
-	pieces = oppKing;
+	pieces = *king;
 	pieces.reset( to_idx );
 	for( i = 0; i < 8; i++ )
 		{
@@ -527,7 +568,7 @@ void Chess::State::addMove( std::vector<Chess::CondensedMove>& moves, int from_i
 	piece->set( to_idx );
 	piece->reset( from_idx );
 	int kingIdx = ( ( piece == &myKing ) ? bitScanForward( *piece ) : bitScanForward( myKing ) );
-	int test = isThreatened( kingIdx, to_idx, from_idx );
+	int test = isThreatened( kingIdx, to_idx, from_idx, ME );
 	if( test != NOT_THREATENED )
 		{
 		if( DEBUG_PRINT ) std::cout << "Puts King in check from idx: " << test << std::endl;

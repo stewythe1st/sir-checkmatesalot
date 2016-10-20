@@ -18,9 +18,10 @@
 /******************************************************
 * Compiler Constants
 ******************************************************/
-#define WHITE		1
-#define BLACK		0
 #define DEBUG_PRINT	false
+enum { WHITE, BLACK	};
+enum { ME, OPPONENT };
+typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
 
 
 /******************************************************
@@ -82,9 +83,8 @@ class Chess::State: public Chess::GameObject
 		State() {};
 		~State() {};
 
-		void Actions( std::vector<Chess::CondensedMove>& moves );
-		//int isThreatened( int idx );
-		int isThreatened( int idx, int to_idx, int from_idx );
+		void Actions( std::vector<Chess::CondensedMove>& moves, int player );
+		int isThreatened( int idx, int to_idx, int from_idx, int player );
 		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, Bitboard* piece );
 
 		int calcScore( Bitboard diff, Bitboard * parent );
