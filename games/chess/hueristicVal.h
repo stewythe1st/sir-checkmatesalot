@@ -8,12 +8,14 @@
 #ifndef JOUEUR_CHESS_HUERISTICVAL_H
 #define JOUEUR_CHESS_HUERISTICVAL_H
 
-
-#define QUEENVAL	9
-#define ROOKVAL		5
-#define BISHOPVAL	3
-#define KNIGHTVAL	3
-#define PAWNVAL		1
+#define KINGVAL		2000
+#define QUEENVAL	90
+#define ROOKVAL		50
+#define BISHOPVAL	30
+#define KNIGHTVAL	30
+#define PAWNVAL		10
+#define PAWNPENALTY	5
+#define MobPENALTY	1
 
 int pawnSquareVal[ 64 ] {
 	0,  0,  0,  0,  0,  0,  0,  0,

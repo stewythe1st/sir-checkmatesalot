@@ -7,6 +7,7 @@
 #include "chess.h"
 #include "game.h"
 #include "gameObject.h"
+#include "minimax.h"
 #include "move.h"
 #include "piece.h"
 #include "player.h"
@@ -60,9 +61,7 @@ class Chess::AI : public Joueur::BaseAI
         /// </summary>
         /// <returns>Represents if you want to end your turn. True means end your turn, False means to keep your turn going and re-call this function.</returns>
         bool runTurn();
-
-		bool executeMove( Chess::CondensedMove * move, std::vector<Chess::CondensedMove> moves );
-		void printMoves( std::vector<Chess::CondensedMove> moves );
+		bool executeMove( Chess::State * move );
 		void printBoard();
 };
 

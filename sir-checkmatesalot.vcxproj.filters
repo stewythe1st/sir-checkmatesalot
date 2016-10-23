@@ -66,6 +66,9 @@
     <ClInclude Include="games\chess\hueristicVal.h">
       <Filter>chess</Filter>
     </ClInclude>
+    <ClInclude Include="games\chess\minimax.h">
+      <Filter>chess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -109,6 +112,9 @@
       <Filter>joueur</Filter>
     </ClCompile>
     <ClCompile Include="games\chess\state.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\minimax.cpp">
       <Filter>chess</Filter>
     </ClCompile>
   </ItemGroup>

@@ -10,6 +10,7 @@
 * Includes
 **************************************************************/
 #include "ai.h"
+#include "minimax.h"
 #include <algorithm>
 
 
@@ -80,25 +81,13 @@ bool Chess::AI::runTurn()
 
 	// Build initial state for this move
 	Chess::State initial( this );
+	Chess::State bestAction;
 
-	// Determine possible actions from initial
-	std::vector<Chess::CondensedMove> moves;
-	std::vector<Chess::CondensedMove> oppMoves;
-	initial.Actions( moves, ME );
-	printMoves( moves );
-	initial.Actions( oppMoves, OPPONENT );
-	printMoves( oppMoves );	
-	//std::sort( moves.begin(), moves.end() );
+	// Call minimax
+	minimax( &initial, &bestAction, 3 );
 
-	// Pick a random action and execute it
-	if( moves.size() == 0 )
-		{
-		std::cout << "No known moves" << std::endl;
-		return true;
-		}
-	srand( time( NULL ) );
-	
-	executeMove(&moves[rand() % moves.size()], moves );
+	// Make our chosen move
+	executeMove( &bestAction );
 
     return true;
 }
@@ -109,46 +98,27 @@ bool Chess::AI::runTurn()
 * Performs the logic to translate potential moves and send
 * the chosen move to the game server
 **************************************************************/
-bool Chess::AI::executeMove( Chess::CondensedMove* move, std::vector<Chess::CondensedMove> moves )
+bool Chess::AI::executeMove( Chess::State* move )
 	{
-	std::vector<Chess::Piece*>::iterator piece = this->player->pieces.begin();
-	std::vector<Chess::Piece*>::iterator endp = this->player->pieces.end();
-	for( piece; piece != endp; piece++ )
+	int idx;
+	int toIdx = ( move->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
+	int fromIdx = ( move->misc.to_ullong() & FROMIDX_MASK ) >> FROMIDX_BITSHIFT;
+	std::vector<Chess::Piece*>::iterator runner = this->player->pieces.begin();
+	std::vector<Chess::Piece*>::iterator last = this->player->pieces.end();
+	for( runner; runner != last; runner++ )
 		{
-		int idx = getBitboardIdx( ( *piece )->rank, &( *piece )->file );
-		if( move->diff.test( idx ) )
+		idx = getBitboardIdx( ( *runner )->rank, &( *runner )->file );
+		if( idx == fromIdx )
 			{
-			int to_idx = bitScanForward( move->diff.reset( idx ) );
-			std::string to_file( 1, ( char )( to_idx % 8 ) + 'a' );
-			int to_rank = 1 + to_idx / 8;
-			std::cout << "Moving " << ( *piece )->type << " at " << ( *piece )->file << ( *piece )->rank << " to " << to_file << to_rank << std::endl;
-			return ( *piece )->move( to_file, to_rank, "Queen" );
+			std::string toFile( 1, ( char )( toIdx % 8 ) + 'a' );
+			int toRank = 1 + toIdx / 8;
+			std::cout << "Moving " << ( *runner )->type << " at "
+					  << ( *runner )->file << ( *runner )->rank
+					  << " to " << toFile << toRank << std::endl;
+			return ( *runner )->move( toFile, toRank, "Queen" );
 			}
 		}
 	return false;
-	}
-
-void Chess::AI::printMoves( std::vector<Chess::CondensedMove> moves )
-	{
-	std::vector<Chess::CondensedMove>::iterator it = moves.begin();
-	std::vector<Chess::CondensedMove>::iterator end = moves.end();
-	int move_from_idx, move_to_idx;
-	std::cout << "Possible moves:" << std::endl;
-	for( it; it != end; it++ )
-		{
-		Bitboard temp = *it->parent;
-		temp &= it->diff;
-		move_from_idx = bitScanForward( temp );
-		it->diff.reset( move_from_idx );
-		move_to_idx = bitScanForward( it->diff );
-		it->diff.set( move_from_idx );
-		std::string to_file( 1, ( char )( move_to_idx % 8 ) + 'a' );
-		std::string from_file( 1, ( char )( move_from_idx % 8 ) + 'a' );
-		int to_rank = 1 + move_to_idx / 8;
-		int from_rank = 1 + move_from_idx / 8;
-		std::cout << "  " << from_file << from_rank << " to " << to_file << to_rank << " S:" << it->score << std::endl;
-		}
-	return;
 	}
 
 

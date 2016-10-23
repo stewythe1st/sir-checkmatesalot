@@ -22,6 +22,11 @@
 enum { WHITE, BLACK	};
 enum { ME, OPPONENT };
 typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
+// Misc indices
+#define TOIDX_BITSHIFT		24
+#define TOIDX_MASK			0x00000000FF000000
+#define FROMIDX_BITSHIFT	32
+#define FROMIDX_MASK		0x000000FF00000000
 
 
 /******************************************************
@@ -71,6 +76,12 @@ class Chess::State: public Chess::GameObject
 		Bitboard oppQueens;
 		Bitboard oppKing;
 
+		Bitboard misc;
+
+		int score;
+
+		State* parent;
+
 		bool inCheck;
 		bool color;
 		int invalid_from_idx;
@@ -79,16 +90,18 @@ class Chess::State: public Chess::GameObject
 		bool canCastleA;
 		bool canCastleH;
 
+		State( Chess::State * parent );
 		State( Chess::AI* ai );
 		State() {};
 		~State() {};
 
-		void Actions( std::vector<Chess::CondensedMove>& moves, int player );
+		void Actions( std::vector<Chess::State*>& frontier, int player );
 		int isThreatened( int idx, int to_idx, int from_idx, int player );
-		void addMove( std::vector<Chess::CondensedMove>& moves, int from_idx, int to_idx, Bitboard* piece );
-
-		int calcScore( Bitboard diff, Bitboard * parent );
+		void addMove( std::vector<Chess::State*>& frontier, int from_idx, int to_idx, Bitboard * piece, int player );
+		void calcScore();
+		Chess::State& operator= ( const Chess::State &rhs );
 
 	};
+	void printMoves( std::vector<Chess::State*>* moves );
 
 #endif

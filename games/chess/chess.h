@@ -17,6 +17,7 @@ namespace Chess
 
 	// custom classes
 	class State;
+	class StateDiff;
 }
 
 #endif
