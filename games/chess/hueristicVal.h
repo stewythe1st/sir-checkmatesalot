@@ -8,6 +8,8 @@
 #ifndef JOUEUR_CHESS_HUERISTICVAL_H
 #define JOUEUR_CHESS_HUERISTICVAL_H
 
+#define MINIMAX_DEPTH 3
+
 #define KINGVAL		2000
 #define QUEENVAL	90
 #define ROOKVAL		50
@@ -17,6 +19,7 @@
 #define PAWNPENALTY	5
 #define MobPENALTY	1
 
+/*
 int pawnSquareVal[ 64 ] {
 	0,  0,  0,  0,  0,  0,  0,  0,
 	50, 50, 50, 50, 50, 50, 50, 50,
@@ -95,5 +98,6 @@ int kingEndgameSquareVal[ 64 ]{
 	};
 
 int* squareVals[ 6 ]{ pawnSquareVal, rookSquareVal, knightSquareVal, bishopSquareVal, queenSquareVal, kingMidgameSquareVal };
+*/
 
 #endif

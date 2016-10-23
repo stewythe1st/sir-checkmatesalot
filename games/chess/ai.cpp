@@ -11,6 +11,7 @@
 **************************************************************/
 #include "ai.h"
 #include "minimax.h"
+#include "hueristicVal.h"
 #include <algorithm>
 
 
@@ -84,7 +85,7 @@ bool Chess::AI::runTurn()
 	Chess::State bestAction;
 
 	// Call minimax
-	id_minimax( &initial, &bestAction, 3 );
+	id_minimax( &initial, &bestAction, MINIMAX_DEPTH );
 
 	// Make our chosen move
 	executeMove( &bestAction );
