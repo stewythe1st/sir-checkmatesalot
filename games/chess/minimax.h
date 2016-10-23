@@ -12,6 +12,7 @@
 ******************************************************/
 #include "chess.h"
 
+void id_minimax( Chess::State* root, Chess::State* bestAction, int depth );
 void minimax( Chess::State* root, Chess::State* bestAction, int depth );
 int maxVal( Chess::State * state, int depth, Chess::State * bestAction );
 int minVal( Chess::State * state, int depth );

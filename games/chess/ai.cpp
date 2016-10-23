@@ -84,7 +84,7 @@ bool Chess::AI::runTurn()
 	Chess::State bestAction;
 
 	// Call minimax
-	minimax( &initial, &bestAction, 3 );
+	id_minimax( &initial, &bestAction, 3 );
 
 	// Make our chosen move
 	executeMove( &bestAction );

@@ -16,6 +16,19 @@
 
 
 /******************************************************
+* Iterative Deepening Minimax Root Call
+******************************************************/
+void id_minimax( Chess::State* root, Chess::State* bestAction, int depth )
+	{
+	for( int i = 1; i <= depth; i++ )
+		{
+		minimax( root, bestAction, i );
+		}
+	return;
+	}
+
+
+/******************************************************
 * Minimax Root Call
 ******************************************************/
 void minimax( Chess::State* root, Chess::State* bestAction, int depth )

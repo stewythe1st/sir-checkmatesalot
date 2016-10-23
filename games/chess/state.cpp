@@ -54,28 +54,27 @@ const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
 * Copy Constructor
 * Performs a deep copy of the passed state
 ******************************************************/
-Chess::State::State( Chess::State* parent )
+Chess::State::State( Chess::State* x )
 	{
-	myPawns = parent->myPawns;
-	myRooks = parent->myRooks;
-	myKnights = parent->myKnights;
-	myBishops = parent->myBishops;
-	myQueens = parent->myQueens;
-	myKing = parent->myKing;
-	oppPawns = parent->oppPawns;
-	oppRooks = parent->oppRooks;
-	oppKnights = parent->oppKnights;
-	oppBishops = parent->oppBishops;
-	oppQueens = parent->oppQueens;
-	oppKing = parent->oppKing;
-	inCheck = parent->inCheck;
-	color = parent->color;
-	invalid_from_idx = parent->invalid_from_idx;
-	invalid_to_idx = parent->invalid_to_idx;
-	en_passant = parent->en_passant;
-	canCastleA = parent->canCastleA;
-	canCastleH = parent->canCastleH;
+	myPawns = x->myPawns;
+	myRooks = x->myRooks;
+	myKnights = x->myKnights;
+	myBishops = x->myBishops;
+	myQueens = x->myQueens;
+	myKing = x->myKing;
+	oppPawns = x->oppPawns;
+	oppRooks = x->oppRooks;
+	oppKnights = x->oppKnights;
+	oppBishops = x->oppBishops;
+	oppQueens = x->oppQueens;
+	oppKing = x->oppKing;
+	inCheck = x->inCheck;
+	color = x->color;
+	en_passant = x->en_passant;
+	canCastleA = x->canCastleA;
+	canCastleH = x->canCastleH;
 	misc = 0;
+	parent = x;
 	}
 
 
@@ -83,7 +82,7 @@ Chess::State::State( Chess::State* parent )
 * Assignment Operator
 * Performs a deep copy of the passed state
 ******************************************************/
-Chess::State& Chess::State::operator = ( const Chess::State &rhs )
+Chess::State& Chess::State::operator = ( Chess::State &rhs )
 	{
 	myPawns = rhs.myPawns;
 	myRooks = rhs.myRooks;
@@ -99,13 +98,12 @@ Chess::State& Chess::State::operator = ( const Chess::State &rhs )
 	oppKing = rhs.oppKing;
 	inCheck = rhs.inCheck;
 	color = rhs.color;
-	invalid_from_idx = rhs.invalid_from_idx;
-	invalid_to_idx = rhs.invalid_to_idx;
 	en_passant = rhs.en_passant;
 	canCastleA = rhs.canCastleA;
 	canCastleH = rhs.canCastleH;
 	misc = rhs.misc;
 	score = rhs.score;
+	parent = &rhs;
 	}
 
 
@@ -202,32 +200,29 @@ Chess::State::State( Chess::AI* ai )
 		( pieceConvert[ ( "opp" + ( *piece )->type ) ] )->set( getBitboardIdx( ( *piece )->rank, &( *piece )->file ) );
 		}
 	
-	// Check for state repetition
-	invalid_from_idx = -1;
-	invalid_to_idx = -1;
+	// Read in our last move
 	std::vector<Chess::Move*> moves = ai->game->moves;
 	int moveSz = moves.size();
-	if( moveSz >= 8 )
+	misc = 0;
+	if( moveSz > 0 )
 		{
-		bool repetition = true;
-		for( int i = 1; i <= 3; i++ )
-			{
-			if( moves[ moveSz - i ]->fromFile != moves[ moveSz - i - 4 ]->fromFile
-			 || moves[ moveSz - i ]->toFile != moves[ moveSz - i - 4 ]->toFile
-			 || moves[ moveSz - i ]->fromRank != moves[ moveSz - i - 4 ]->fromRank
-			 || moves[ moveSz - i ]->toRank != moves[ moveSz - i - 4 ]->toRank )
-				{
-				repetition = false;
-				break;
-				}
-			}
-		if( repetition )
-			{
-			if( DEBUG_PRINT ) std::cout << "Warning! Risk of repetition!" << std::endl;
-			invalid_from_idx = getBitboardIdx( moves[ moveSz - 4 ]->fromRank, &moves[ moveSz - 4 ]->fromFile );
-			invalid_to_idx = getBitboardIdx( moves[ moveSz - 4 ]->toRank, &moves[ moveSz - 4 ]->toFile );
-			}
+		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->fromRank, &moves.back()->toFile ) << FROMIDX_BITSHIFT );
+		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->toRank, &moves.back()->toFile ) << TOIDX_BITSHIFT );
 		}
+
+	// Build up previous states to check for state repetition
+	Chess::State* lastState = this;
+	for( int i = moveSz - 1; i >= moveSz - 8 && i >= 0; i-- )
+		{
+		Chess::State* newState = new State( this );
+		newState->parent = nullptr;
+		lastState->parent = newState;
+		lastState = newState;
+		newState->misc = 0;
+		newState->misc |= ( ( unsigned long long )getBitboardIdx( moves[ i ]->fromRank, &moves[ i ]->fromFile ) << FROMIDX_BITSHIFT );
+		newState->misc |= ( ( unsigned long long )getBitboardIdx( moves[ i ]->toRank, &moves[ i ]->toFile ) << TOIDX_BITSHIFT );
+		}
+
 	return;
 	}
 
@@ -609,6 +604,13 @@ int Chess::State::isThreatened( int idx, int to_idx, int from_idx, int player )
 	return NOT_THREATENED;
 	}
 
+
+/**************************************************************
+* Validate & Add Move
+* Checks to see if this move would violate any higher order rules
+* such as check or repetition and performs alterations to 
+* produce a child state and add to passed vector.
+**************************************************************/
 void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, int to_idx, Bitboard* piece, int player )
 	{
 	if( DEBUG_PRINT ) std::cout << "Testing move from " << from_idx << " to " << to_idx << ":   ";
@@ -616,7 +618,7 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 	// Apply move, copy state, revert move
 	piece->set( to_idx );
 	piece->reset( from_idx );
-	State* newState = new State( this );
+	Chess::State* newState = new State( this );
 	piece->reset( to_idx );
 	piece->set( from_idx );
 
@@ -658,15 +660,54 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 			newState->oppPawns.reset( to_idx );
 			}
 		}
-
+	/*
 	// see if this move would cause repetition
-	/*if( from_idx == invalid_from_idx && to_idx == invalid_to_idx )
+	bool repetition = true;
+	Chess::State* runner = newState;
+	Chess::State* runner2 = newState;
+	std::cout << "start 1: ";
+	for( int i = 0; i < 4; i++ )
 		{
-		if( DEBUG_PRINT ) std::cout << "Would cause repetition!" << std::endl;
+		std::cout << i << ",";
+		if( runner2->parent == nullptr || runner2->parent == 0 )
+			{
+			repetition = false;
+			std::cout << "break";
+			break;
+			}
+		runner2 = runner2->parent;
+		}
+	int toIdx, fromIdx, toIdx2, fromIdx2;
+	std::cout << std::endl << "start 2: " << std::endl;
+	for( int i = 0; i < 8 && repetition; i++ )
+		{
+		std::cout << i << "," << std::endl;
+		int toIdx = ( runner->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
+		std::cout << "ping1" << std::endl;
+		int fromIdx = ( runner->misc.to_ullong() & FROMIDX_MASK ) >> FROMIDX_BITSHIFT;
+		std::cout << "ping2" << std::endl;
+		int toIdx2 = ( runner2->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
+		std::cout << "ping3" << std::endl;
+		int fromIdx2 = ( runner2->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
+		std::cout << "ping4" << std::endl;
+		if( toIdx != toIdx2 || fromIdx != fromIdx2 )
+			repetition = false;
+		if( runner2->parent == nullptr )
+			{
+			std::cout << "break " << std::endl;
+			repetition = false;
+			break;
+			}
+		std::cout << "ping5" << std::endl;
+		runner = runner->parent;
+		std::cout << "ping6" << std::endl;
+		runner2 = runner2->parent;
+		std::cout << "ping7" << std::endl;
+		}
+	std::cout << std::endl << "done" << std::endl;
+	if( repetition )
 		return;
-		}*/
-
-
+		*/
 
 	// Check if the king is in check
 	int kingIdx = ( ( player == ME ) ? bitScanForward( newState->myKing ) : bitScanForward( newState->oppKing ) );

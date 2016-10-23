@@ -33,15 +33,6 @@ typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
 * Types
 ******************************************************/
 typedef std::bitset<64> Bitboard;
-struct Chess::CondensedMove
-	{
-	Bitboard diff;
-	Bitboard* parent;
-	int score;
-	CondensedMove( Bitboard* p, Bitboard d, int s ) { parent = p;	diff = d; score = s; };
-	bool operator<( Chess::CondensedMove const& x ) const { return score > x.score; }
-	};
-
 
 
 /******************************************************
@@ -84,8 +75,6 @@ class Chess::State: public Chess::GameObject
 
 		bool inCheck;
 		bool color;
-		int invalid_from_idx;
-		int invalid_to_idx;
 		int en_passant;
 		bool canCastleA;
 		bool canCastleH;
@@ -99,7 +88,7 @@ class Chess::State: public Chess::GameObject
 		int isThreatened( int idx, int to_idx, int from_idx, int player );
 		void addMove( std::vector<Chess::State*>& frontier, int from_idx, int to_idx, Bitboard * piece, int player );
 		void calcScore();
-		Chess::State& operator= ( const Chess::State &rhs );
+		Chess::State& operator= ( Chess::State &rhs );
 
 	};
 	void printMoves( std::vector<Chess::State*>* moves );
