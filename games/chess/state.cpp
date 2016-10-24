@@ -206,13 +206,14 @@ Chess::State::State( Chess::AI* ai )
 	misc = 0;
 	if( moveSz > 0 )
 		{
-		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->fromRank, &moves.back()->toFile ) << FROMIDX_BITSHIFT );
+		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->fromRank, &moves.back()->fromFile ) << FROMIDX_BITSHIFT );
 		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->toRank, &moves.back()->toFile ) << TOIDX_BITSHIFT );
 		}
 
 	// Build up previous states to check for state repetition
+	parent = nullptr;
 	Chess::State* lastState = this;
-	for( int i = moveSz - 1; i >= moveSz - 8 && i >= 0; i-- )
+	for( int i = moveSz - 2; i >= moveSz - 8 && i >= 0; i-- )
 		{
 		Chess::State* newState = new State( this );
 		newState->parent = nullptr;
@@ -660,55 +661,43 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 			newState->oppPawns.reset( to_idx );
 			}
 		}
-	/*
+	
 	// see if this move would cause repetition
 	bool repetition = true;
 	Chess::State* runner = newState;
 	Chess::State* runner2 = newState;
-	std::cout << "start 1: ";
 	for( int i = 0; i < 4; i++ )
 		{
-		std::cout << i << ",";
-		if( runner2->parent == nullptr || runner2->parent == 0 )
+		if( runner2->parent == nullptr )
 			{
 			repetition = false;
-			std::cout << "break";
 			break;
 			}
 		runner2 = runner2->parent;
 		}
 	int toIdx, fromIdx, toIdx2, fromIdx2;
-	std::cout << std::endl << "start 2: " << std::endl;
-	for( int i = 0; i < 8 && repetition; i++ )
+	for( int i = 0; i < 4 && repetition; i++ )
 		{
-		std::cout << i << "," << std::endl;
 		int toIdx = ( runner->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
-		std::cout << "ping1" << std::endl;
 		int fromIdx = ( runner->misc.to_ullong() & FROMIDX_MASK ) >> FROMIDX_BITSHIFT;
-		std::cout << "ping2" << std::endl;
 		int toIdx2 = ( runner2->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
-		std::cout << "ping3" << std::endl;
-		int fromIdx2 = ( runner2->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
-		std::cout << "ping4" << std::endl;
+		int fromIdx2 = ( runner2->misc.to_ullong() & FROMIDX_MASK ) >> FROMIDX_BITSHIFT;
 		if( toIdx != toIdx2 || fromIdx != fromIdx2 )
-			repetition = false;
-		if( runner2->parent == nullptr )
 			{
-			std::cout << "break " << std::endl;
 			repetition = false;
 			break;
 			}
-		std::cout << "ping5" << std::endl;
+		if( runner2->parent == nullptr )
+			{
+			repetition = false;
+			break;
+			}
 		runner = runner->parent;
-		std::cout << "ping6" << std::endl;
 		runner2 = runner2->parent;
-		std::cout << "ping7" << std::endl;
 		}
-	std::cout << std::endl << "done" << std::endl;
 	if( repetition )
 		return;
-		*/
-
+	
 	// Check if the king is in check
 	int kingIdx = ( ( player == ME ) ? bitScanForward( newState->myKing ) : bitScanForward( newState->oppKing ) );
 	int test = newState->isThreatened( kingIdx, to_idx, from_idx, player );
