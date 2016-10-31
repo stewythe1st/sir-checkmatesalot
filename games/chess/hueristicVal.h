@@ -17,7 +17,7 @@
 #define KNIGHTVAL	30
 #define PAWNVAL		10
 #define PAWNPENALTY	5
-#define MobPENALTY	1
+#define MOBPENALTY	1
 
 /*
 int pawnSquareVal[ 64 ] {

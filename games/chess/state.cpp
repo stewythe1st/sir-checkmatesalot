@@ -56,25 +56,21 @@ const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
 ******************************************************/
 Chess::State::State( Chess::State* x )
 	{
-	myPawns = x->myPawns;
-	myRooks = x->myRooks;
-	myKnights = x->myKnights;
-	myBishops = x->myBishops;
-	myQueens = x->myQueens;
-	myKing = x->myKing;
-	oppPawns = x->oppPawns;
-	oppRooks = x->oppRooks;
-	oppKnights = x->oppKnights;
-	oppBishops = x->oppBishops;
-	oppQueens = x->oppQueens;
-	oppKing = x->oppKing;
-	inCheck = x->inCheck;
-	color = x->color;
-	en_passant = x->en_passant;
-	canCastleA = x->canCastleA;
-	canCastleH = x->canCastleH;
-	misc = 0;
-	parent = x;
+	myPawns		= x->myPawns;
+	myRooks		= x->myRooks;
+	myKnights	= x->myKnights;
+	myBishops	= x->myBishops;
+	myQueens	= x->myQueens;
+	myKing		= x->myKing;
+	oppPawns	= x->oppPawns;
+	oppRooks	= x->oppRooks;
+	oppKnights	= x->oppKnights;
+	oppBishops	= x->oppBishops;
+	oppQueens	= x->oppQueens;
+	oppKing		= x->oppKing;
+	color		= x->color;
+	misc		= x->misc;
+	parent		= x;
 	}
 
 
@@ -84,26 +80,22 @@ Chess::State::State( Chess::State* x )
 ******************************************************/
 Chess::State& Chess::State::operator = ( Chess::State &rhs )
 	{
-	myPawns = rhs.myPawns;
-	myRooks = rhs.myRooks;
-	myKnights = rhs.myKnights;
-	myBishops = rhs.myBishops;
-	myQueens = rhs.myQueens;
-	myKing = rhs.myKing;
-	oppPawns = rhs.oppPawns;
-	oppRooks = rhs.oppRooks;
-	oppKnights = rhs.oppKnights;
-	oppBishops = rhs.oppBishops;
-	oppQueens = rhs.oppQueens;
-	oppKing = rhs.oppKing;
-	inCheck = rhs.inCheck;
-	color = rhs.color;
-	en_passant = rhs.en_passant;
-	canCastleA = rhs.canCastleA;
-	canCastleH = rhs.canCastleH;
-	misc = rhs.misc;
-	score = rhs.score;
-	parent = &rhs;
+	myPawns		= rhs.myPawns;
+	myRooks		= rhs.myRooks;
+	myKnights	= rhs.myKnights;
+	myBishops	= rhs.myBishops;
+	myQueens	= rhs.myQueens;
+	myKing		= rhs.myKing;
+	oppPawns	= rhs.oppPawns;
+	oppRooks	= rhs.oppRooks;
+	oppKnights	= rhs.oppKnights;
+	oppBishops	= rhs.oppBishops;
+	oppQueens	= rhs.oppQueens;
+	oppKing		= rhs.oppKing;
+	color		= rhs.color;
+	misc		= rhs.misc;
+	score		= rhs.score;
+	parent		= &rhs;
 	}
 
 
@@ -154,50 +146,37 @@ Chess::State::State( Chess::AI* ai )
 		color = WHITE;
 		}
 
-	// Check if we're in check
-	inCheck = false;
-	if( ai->player->inCheck )
+	// Parse FEN string for en passant and castling
+	std::string fen = ai->game->fen;
+	int i = fen.find_first_of( ' ' );
+	std::cout << fen << std::endl;
+	for( i = i + 3; fen[ i ] != ' '; i++ )
 		{
-		inCheck = true;
-		}		
-
-	// If Opp's last move was a double pawn step, we can en passant capture it
-	en_passant = -1;
-	if( ai->game->moves.size() > 0 )
-		{
-		Chess::Move* oppMove = ai->game->moves.back();
-		if( oppMove->piece->type == "Pawn" && ( std::abs( oppMove->fromRank - oppMove->toRank ) ) == 2 )
-			en_passant = getBitboardIdx( oppMove->toRank, &oppMove->toFile );
+		if( fen[ i ] == 'Q' )
+			misc.set( 0 );
+		else if( fen[ i ] == 'K' )
+			misc.set( 8 );
+		else if( fen[ i ] == 'q' )
+			misc.set( 56 );
+		else if( fen[ i ] == 'k' )
+			misc.set( 63 );
 		}
+	if( fen[ i + 1 ] != '-' )
+		misc.set( getBitboardIdx( fen[ i + 2 ] - 48, string( 1, fen[ i + 1 ] ) ) );
+	std::cout << "done" << std::endl;
 
 	// Read in our pieces
 	piece = ai->player->pieces.begin();
 	end = ai->player->pieces.end();
-	canCastleA = true;
-	canCastleH = true;
 	for( piece; piece != end; piece++ )
-		{
-		( pieceConvert[ ( "my" + ( *piece )->type ) ] )->set( getBitboardIdx( ( *piece )->rank, &( *piece )->file ) );
-		if( ( *piece )->type == "King" && ( *piece )->hasMoved )
-			{
-			canCastleA = false;
-			canCastleH = false;
-			}
-		if( ( *piece )->type == "Rook" && ( *piece )->hasMoved )
-			{
-			if( (*piece)->file != "a")
-				canCastleA = false;
-			if( ( *piece )->file != "h" )
-				canCastleH = false;
-			}
-		}
+		( pieceConvert[ ( "my" + ( *piece )->type ) ] )->set( getBitboardIdx( ( *piece )->rank, ( *piece )->file ) );
 
 	// Read in our opponent's pieces
 	piece = ai->player->opponent->pieces.begin();
 	end = ai->player->opponent->pieces.end();
 	for( piece; piece != end; piece++ )
 		{
-		( pieceConvert[ ( "opp" + ( *piece )->type ) ] )->set( getBitboardIdx( ( *piece )->rank, &( *piece )->file ) );
+		( pieceConvert[ ( "opp" + ( *piece )->type ) ] )->set( getBitboardIdx( ( *piece )->rank, ( *piece )->file ) );
 		}
 	
 	// Read in our last move
@@ -206,22 +185,22 @@ Chess::State::State( Chess::AI* ai )
 	misc = 0;
 	if( moveSz > 0 )
 		{
-		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->fromRank, &moves.back()->fromFile ) << FROMIDX_BITSHIFT );
-		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->toRank, &moves.back()->toFile ) << TOIDX_BITSHIFT );
+		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->fromRank, moves.back()->fromFile ) << FROMIDX_BITSHIFT );
+		misc |= ( ( unsigned long long )getBitboardIdx( moves.back()->toRank, moves.back()->toFile ) << TOIDX_BITSHIFT );
 		}
 
 	// Build up previous states to check for state repetition
 	parent = nullptr;
 	Chess::State* lastState = this;
-	for( int i = moveSz - 2; i >= moveSz - 8 && i >= 0; i-- )
+	for( i = moveSz - 2; i >= moveSz - 8 && i >= 0; i-- )
 		{
 		Chess::State* newState = new State( this );
 		newState->parent = nullptr;
 		lastState->parent = newState;
 		lastState = newState;
 		newState->misc = 0;
-		newState->misc |= ( ( unsigned long long )getBitboardIdx( moves[ i ]->fromRank, &moves[ i ]->fromFile ) << FROMIDX_BITSHIFT );
-		newState->misc |= ( ( unsigned long long )getBitboardIdx( moves[ i ]->toRank, &moves[ i ]->toFile ) << TOIDX_BITSHIFT );
+		newState->misc |= ( ( unsigned long long )getBitboardIdx( moves[ i ]->fromRank, moves[ i ]->fromFile ) << FROMIDX_BITSHIFT );
+		newState->misc |= ( ( unsigned long long )getBitboardIdx( moves[ i ]->toRank, moves[ i ]->toFile ) << TOIDX_BITSHIFT );
 		}
 
 	return;
@@ -232,9 +211,9 @@ Chess::State::State( Chess::AI* ai )
 * Get Bitboard Index
 * Converts rank and file to a bitboard index
 ******************************************************/
-int getBitboardIdx( int rank, std::string* file )
+int getBitboardIdx( int rank, std::string file )
 	{
-	return( ( ( *file )[ 0 ] - 'a' ) + ( ( rank - 1 ) * 8 ) );
+	return( ( ( file )[ 0 ] - 'a' ) + ( ( rank - 1 ) * 8 ) );
 	}
 
 
@@ -314,31 +293,18 @@ void Chess::State::Actions( std::vector<Chess::State*>& frontier, int player )
 		new_idx = idx + ( 7 * dir );
 		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
 			addMove( frontier, idx, new_idx, pawns, player );
+		else if( ( getRankNum(new_idx) == 5 || getRankNum(new_idx) == 2 ) && misc.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
 		new_idx = idx + ( 8 * dir );
 		if( isValidIdx( new_idx ) && !all.test( new_idx ) )
 			addMove( frontier, idx, new_idx, pawns, player );
 		new_idx = idx + ( 9 * dir );
 		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
 			addMove( frontier, idx, new_idx, pawns, player );
+		else if( ( getRankNum( new_idx ) == 5 || getRankNum( new_idx ) == 2 ) && misc.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
 		if( getRankNum( idx ) == pawnRank && !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
 			addMove( frontier, idx, idx + ( 16 * dir ), pawns, player );
-		if( en_passant != -1 )
-			{
-			if( color == WHITE )
-				{
-				if( ( ( idx + 1 ) == en_passant ) && !all.test( idx + 9 ) && !oneRowCross( idx, idx + 9 ) )
-					addMove( frontier, idx, idx + 9, pawns, player );
-				if( ( ( idx - 1 ) == en_passant ) && !all.test( idx + 7 ) && !oneRowCross( idx, idx + 7 ) )
-					addMove( frontier, idx, idx + 7, pawns, player );
-				}
-			else
-				{
-				if( ( ( idx + 1 ) == en_passant ) && !all.test( idx - 7 ) && !oneRowCross( idx, idx - 7 ) )
-					addMove( frontier, idx, idx - 7, pawns, player );
-				if( ( ( idx - 1 ) == en_passant ) && !all.test( idx - 9 ) && !oneRowCross( idx, idx - 9 ) )
-					addMove( frontier, idx, idx - 9, pawns, player );
-				}
-			}
 		}
 			
 
@@ -474,20 +440,13 @@ void Chess::State::Actions( std::vector<Chess::State*>& frontier, int player )
 		if( isValidIdx( new_idx ) && !allMy.test( new_idx ) && !oneRowCross( idx, new_idx ) )
 			addMove( frontier, idx, new_idx, king, player );
 		}
-	/*
-	if( canCastleA && !isThreatened( idx, idx, idx ) )
-		{
-		for( i = idx - 1; getFileNum( i ) != 7 && all.test( i ); i-- ) {};
-		if( getFileNum( i ) == 0 )
-			addMove( frontier, idx, i, king );
-		}
-	if( canCastleH && !isThreatened( idx, idx, idx ) )
-		{
-		for( i = idx + 1; getFileNum( i ) != 0 && all.test( i ); i++ ) {};
-		if( getFileNum( i ) == 7 )
-			addMove( frontier, idx, i, king );
-		}
-	*/
+	new_idx = color == WHITE ? 0 : 56;
+	if( misc.test( new_idx ) && !misc.test( new_idx + 1 ) && !misc.test( new_idx + 2 ) && !misc.test( new_idx + 3 ) )
+		addMove( frontier, idx, new_idx, king, player );
+	new_idx += 7;
+	if( misc.test( new_idx ) && !misc.test( new_idx + 1 ) && !misc.test( new_idx + 2 ) )
+		addMove( frontier, idx, new_idx, king, player );
+
 	return;
 	}
 
@@ -624,8 +583,10 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 	piece->set( from_idx );
 
 	// Set to/from indices in misc data struct
-	newState->misc |= ( ( unsigned long long )from_idx << FROMIDX_BITSHIFT );
-	newState->misc |= ( ( unsigned long long )to_idx << TOIDX_BITSHIFT );
+	newState->misc &= ( Bitboard )CASTLE_MASK;
+	newState->misc |= ( ( ( unsigned long long )from_idx ) << FROMIDX_BITSHIFT );
+	newState->misc |= ( ( ( unsigned long long )to_idx ) << TOIDX_BITSHIFT );
+	//if( DEBUG_PRINT ) std::cout << newState->misc << std::endl;
 	
 	// My side processing
 	if( player == ME )
@@ -661,12 +622,16 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 			newState->oppPawns.reset( to_idx );
 			}
 		}
-	
+	// Special case for double pawn step (makes en passant possible)
+	int i = std::abs( from_idx - to_idx );
+	if( ( piece == &myPawns || piece == &oppPawns ) && i == 16 )
+		newState->misc.set( i / 2 );
+
 	// see if this move would cause repetition
 	bool repetition = true;
 	Chess::State* runner = newState;
 	Chess::State* runner2 = newState;
-	for( int i = 0; i < 4; i++ )
+	for( i = 0; i < 4; i++ )
 		{
 		if( runner2->parent == nullptr )
 			{
@@ -676,7 +641,7 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 		runner2 = runner2->parent;
 		}
 	int toIdx, fromIdx, toIdx2, fromIdx2;
-	for( int i = 0; i < 4 && repetition; i++ )
+	for( i = 0; i < 4 && repetition; i++ )
 		{
 		int toIdx = ( runner->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
 		int fromIdx = ( runner->misc.to_ullong() & FROMIDX_MASK ) >> FROMIDX_BITSHIFT;
@@ -696,7 +661,10 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 		runner2 = runner2->parent;
 		}
 	if( repetition )
+		{
+		if( DEBUG_PRINT ) std::cout << "Would cause repetition!" << std::endl;
 		return;
+		}
 	
 	// Check if the king is in check
 	int kingIdx = ( ( player == ME ) ? bitScanForward( newState->myKing ) : bitScanForward( newState->oppKing ) );
@@ -797,6 +765,7 @@ void Chess::State::calcScore()
 	}
 
 	// Calculate score
+	score = 0;
 	score += KINGVAL * ( myKing.count() - oppKing.count() );
 	score += QUEENVAL * ( myQueens.count() - oppQueens.count() );
 	score += ROOKVAL * ( myRooks.count() - oppRooks.count() );

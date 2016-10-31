@@ -59,6 +59,7 @@ int maxVal( Chess::State* state, int depth, Chess::State* bestAction )
 
 	// Build frontier
 	state->Actions( frontier, ME );
+	//printMoves( &frontier );
 
 	// Evaluate each state in frontier
 	for( std::vector<Chess::State*>::iterator runner = frontier.begin(); runner != frontier.end(); runner++ )

@@ -18,28 +18,30 @@
 /******************************************************
 * Compiler Constants
 ******************************************************/
-#define DEBUG_PRINT	false
-enum { WHITE, BLACK	};
-enum { ME, OPPONENT };
-typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
-// Misc indices
+#define DEBUG_PRINT			false
 #define TOIDX_BITSHIFT		24
 #define TOIDX_MASK			0x00000000FF000000
 #define FROMIDX_BITSHIFT	32
 #define FROMIDX_MASK		0x000000FF00000000
+#define EN_PASSANT_MASK		0x0000FF0000FF0000
+#define CASTLE_MASK			0x8100000000000081
+
+enum { WHITE, BLACK };
+enum { ME, OPPONENT };
 
 
 /******************************************************
 * Types
 ******************************************************/
 typedef std::bitset<64> Bitboard;
+typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
 
 
 /******************************************************
 * Public Utility Functions
 ******************************************************/
 int bitScanForward( Bitboard bb );
-int getBitboardIdx( int rank, std::string* file );
+int getBitboardIdx( int rank, std::string file );
 void print_bitboard( Bitboard* bitboard );
 
 
@@ -73,11 +75,7 @@ class Chess::State: public Chess::GameObject
 
 		State* parent;
 
-		bool inCheck;
 		bool color;
-		int en_passant;
-		bool canCastleA;
-		bool canCastleH;
 
 		State( Chess::State * parent );
 		State( Chess::AI* ai );

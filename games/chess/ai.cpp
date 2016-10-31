@@ -108,7 +108,7 @@ bool Chess::AI::executeMove( Chess::State* move )
 	std::vector<Chess::Piece*>::iterator last = this->player->pieces.end();
 	for( runner; runner != last; runner++ )
 		{
-		idx = getBitboardIdx( ( *runner )->rank, &( *runner )->file );
+		idx = getBitboardIdx( ( *runner )->rank, ( *runner )->file );
 		if( idx == fromIdx )
 			{
 			std::string toFile( 1, ( char )( toIdx % 8 ) + 'a' );
