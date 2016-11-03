@@ -30,7 +30,18 @@ std::string Chess::AI::getName() { return "Sir Checkmatesalot"; }
 * initialize any variables you add to your AI, or start tracking
 * game objects.
 **************************************************************/
-void Chess::AI::start() {}
+void Chess::AI::start()
+	{
+	std::cout << "       ___ _" << std::endl
+			  << "      / __\\ |___   ___  ___ ___  " << std::endl
+			  << "     / /  | '_  \\ / _ \\/ __/ __| " << std::endl
+			  << "    / /___| | | ||  __/\\__ \\__ \\ " << std::endl
+			  << "    \\____/|_| |_| \\___||___/___/ " << std::endl;
+	std::cout << "----------------------------------------------" << std::endl;
+	std::cout << this->game->currentPlayer->name << " vs. " << this->game->currentPlayer->opponent->name << std::endl;
+	std::cout << "----------------------------------------------" << std::endl;
+	return;
+	}
 
 
 /**************************************************************
@@ -65,31 +76,49 @@ void Chess::AI::ended( bool won, std::string reason )
 **************************************************************/
 bool Chess::AI::runTurn()
 	{
-	std::cout << "-------------------------------" << std::endl;
+	std::cout << "----------------------------------------------" << std::endl;
 	std::cout << "Beginning turn " << this->game->currentTurn << " for " << this->game->currentPlayer->color << std::endl;
 
 	// Print board to console
 	printBoard();
 
+	std::cout << "State:" << std::endl;
+
     // Print the Opp's last move to the console
 	if( this->game->moves.size() > 0 )
 		{
-		std::cout << "Opponent's Last Move: '" << this->game->moves[ this->game->moves.size() - 1 ]->san << "'" << std::endl;
+		std::cout << "  Opponent's Last Move: '" << this->game->moves[ this->game->moves.size() - 1 ]->san << "'" << std::endl;
 		}
 
+	// Print board state in Forsyth-Edwards notation
+	std::cout << "  FEN: " << this->game->fen << std::endl;
+
     // Print how much time remaining this AI has to calculate moves
-    std::cout << "Time Remaining: " << this->player->timeRemaining << " ns" << std::endl;
+	int ms = this->player->timeRemaining / 1000000;
+    std::cout << "  Time Remaining: " <<  ms / 60000  << ":" << ( ms / 1000 ) % 60 << "." << ms % 1000 << std::endl;
 
 	// Build initial state for this move
 	Chess::State initial( this );
 	Chess::State bestAction;
 
 	// Call minimax
-	id_minimax( &initial, &bestAction, MINIMAX_DEPTH );
+	std::cout << "Calculating Best Move:" << std::endl;
+	id_minimax( &initial, &bestAction, MINIMAX_DEPTH, this->player->timeRemaining );
 
 	// Make our chosen move
 	executeMove( &bestAction );
 
+	// Print node stats
+	int pruned, expanded;
+	getStats( pruned, expanded );
+	std::cout << "Statistics: " << std::endl;
+	std::cout << "  Pruned Nodes: " << pruned << std::endl;
+	std::cout << "  Expanded Nodes: " << expanded << std::endl;
+
+	// Done
+	std::cout << "----------------------------------------------" << std::endl;
+	std::cout << "Beginning turn " << this->game->currentTurn + 1 << " for " << this->game->currentPlayer->opponent->color << std::endl;
+	std::cout << "  Waiting on Opponent..." << std::endl;
     return true;
 }
 
@@ -113,7 +142,7 @@ bool Chess::AI::executeMove( Chess::State* move )
 			{
 			std::string toFile( 1, ( char )( toIdx % 8 ) + 'a' );
 			int toRank = 1 + toIdx / 8;
-			std::cout << "Moving " << ( *runner )->type << " at "
+			std::cout << "  Moving " << ( *runner )->type << " at "
 					  << ( *runner )->file << ( *runner )->rank
 					  << " to " << toFile << toRank << std::endl;
 			return ( *runner )->move( toFile, toRank, "Queen" );

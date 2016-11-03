@@ -47,7 +47,7 @@ static const int index64[ 64 ] = {
 	25, 14, 19,  9, 13,  8,  7,  6
 	};
 static const int knightMoves[ 8 ]	= { -17, -15, -10, -6, 6, 10, 15, 17 };
-const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
+static const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
 
 
 /******************************************************
@@ -149,7 +149,6 @@ Chess::State::State( Chess::AI* ai )
 	// Parse FEN string for en passant and castling
 	std::string fen = ai->game->fen;
 	int i = fen.find_first_of( ' ' );
-	std::cout << fen << std::endl;
 	for( i = i + 3; fen[ i ] != ' '; i++ )
 		{
 		if( fen[ i ] == 'Q' )
@@ -163,7 +162,6 @@ Chess::State::State( Chess::AI* ai )
 		}
 	if( fen[ i + 1 ] != '-' )
 		misc.set( getBitboardIdx( fen[ i + 2 ] - 48, string( 1, fen[ i + 1 ] ) ) );
-	std::cout << "done" << std::endl;
 
 	// Read in our pieces
 	piece = ai->player->pieces.begin();

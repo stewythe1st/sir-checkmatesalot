@@ -13,16 +13,47 @@
 #include "chess.h"
 #include "state.h"
 #include "minimax.h"
+#include <time.h>
+
+
+/******************************************************
+* Macros
+******************************************************/
+#define MAX( x, y )		( ( x ) > ( y ) ? ( x ) : ( y ) )
+#define MIN( x, y )		( ( x ) < ( y ) ? ( x ) : ( y ) )
+
+/******************************************************
+* Variables
+******************************************************/
+static int			pruned;
+static int			expanded;
+static clock_t		endTime;
+
+
+/******************************************************
+* Return Statistics
+******************************************************/
+void getStats( int& p, int& e )
+	{
+	p = pruned;
+	e = expanded;
+	return;
+	}
 
 
 /******************************************************
 * Iterative Deepening Minimax Root Call
+* time is given in ns
 ******************************************************/
-void id_minimax( Chess::State* root, Chess::State* bestAction, int depth )
+void id_minimax( Chess::State* root, Chess::State* bestAction, int maxDepth, double time )
 	{
-	for( int i = 1; i <= depth; i++ )
+	//endTime = clock() + ( time * 0.03 / 1000000000 * CLOCKS_PER_SEC );
+	endTime = clock() + ( 5 * CLOCKS_PER_SEC );
+	pruned = 0;
+	expanded = 0;
+	for( int i = 1; i <= maxDepth; i++ )
 		{
-		minimax( root, bestAction, i );
+		minimax( root, i, bestAction );
 		}
 	return;
 	}
@@ -31,9 +62,9 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, int depth )
 /******************************************************
 * Minimax Root Call
 ******************************************************/
-void minimax( Chess::State* root, Chess::State* bestAction, int depth )
+static void minimax( Chess::State* root, int depth, Chess::State* bestAction )
 	{
-	maxVal( root, depth, bestAction );
+	minMaxVal( root, INT_MIN, INT_MAX, depth, MAX, bestAction );
 	return;
 	}
 
@@ -44,30 +75,64 @@ void minimax( Chess::State* root, Chess::State* bestAction, int depth )
 * If the passed state pointer is non-null, it will also
 * return a pointer to the maximum valued state
 ******************************************************/
-int maxVal( Chess::State* state, int depth, Chess::State* bestAction )
+static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMax m, Chess::State* bestAction )
 	{
 	// Check depth limit
 	if( depth == 0 )
 		{
 		return state->score;
-		}		
+		}
 
 	// Declarations
 	std::vector<Chess::State*>	frontier;
 	int							val;
-	int							bestVal = INT_MIN;
+	int							bestVal = ( m == MIN ? INT_MAX : INT_MIN );
 
 	// Build frontier
-	state->Actions( frontier, ME );
-	//printMoves( &frontier );
+	state->Actions( frontier, ( m == MIN ? OPPONENT : ME ) );
+	expanded++;
 
 	// Evaluate each state in frontier
-	for( std::vector<Chess::State*>::iterator runner = frontier.begin(); runner != frontier.end(); runner++ )
+	std::vector<Chess::State*>::iterator runner = frontier.begin();
+
+	if( m == MIN )
 		{
-		val = minVal( *runner, depth - 1 );
-		( *runner )->score = val;
-		if( val > bestVal )
-			bestVal = val;
+		for( runner; runner != frontier.end() && clock() < endTime; runner++ )
+			{
+			val = minMaxVal( *runner, alpha, beta, depth - 1, MAX, nullptr );
+			( *runner )->score = val;
+
+			// Update values if better state found
+			bestVal = MIN( val, bestVal );
+			beta = MIN( val, beta );
+
+			// Prune if fail-high
+			if( alpha >= beta )
+				{
+				pruned++;
+				break;
+				}
+			}
+		}
+
+	else // ( m == MAX )
+		{
+		for( runner; runner != frontier.end() && clock() < endTime; runner++ )
+			{
+			val = minMaxVal( *runner, alpha, beta, depth - 1, MIN, nullptr );
+			( *runner )->score = val;
+
+			// Update values if better state found
+			bestVal = MAX( val, bestVal );
+			alpha = MAX( val, alpha );
+
+			// Prune if fail-low
+			if( beta <= alpha )
+				{
+				pruned++;
+				break;
+				}
+			}
 		}
 
 	// Free memory (and return if root call)
@@ -80,49 +145,11 @@ int maxVal( Chess::State* state, int depth, Chess::State* bestAction )
 			}
 			
 		else
+			{
 			delete frontier[ i ];
+			}
 		}
 
 	// Return value
 	return bestVal;
 	}
-
-
-/******************************************************
-* MinVal
-* Returns the minimum value of the passed state's children
-******************************************************/
-int minVal( Chess::State* state, int depth )
-	{
-	// Check depth limit
-	if( depth == 0 )
-		{
-		return state->score;
-		}
-
-	// Declarations
-	std::vector<Chess::State*>	frontier;
-	int							val;
-	int							bestVal = INT_MAX;
-
-	// Build frontier
-	state->Actions( frontier, OPPONENT );
-
-	// Evaluate each state in frontier
-	for( std::vector<Chess::State*>::iterator runner = frontier.begin(); runner != frontier.end(); runner++ )
-		{
-		val = maxVal( *runner, depth - 1, nullptr );
-		( *runner )->score = val;
-		if( val < bestVal )
-			bestVal = val;
-		}
-
-	// Free memory
-	for( int i = 0; i < frontier.size(); i++ )
-		delete frontier[ i ];
-
-	// Return value
-	return bestVal;
-	}
-
-
