@@ -1,7 +1,7 @@
 Chess AI
 ==========
-Game Assignment #2<br>
-Iterative-Deepening Depth-Limited Minimax
+Game Assignment #3<br>
+Time-Limited Iterative-Deepening Depth-Limited Minimax with Alpha-Beta Pruning
 
 ####Author
 Stuart Miller<br>
@@ -17,7 +17,7 @@ All configurable parameters can be found as compiler constants in hueristicVal.h
 * Other Hueristic Values (misc. constants)
 
 ####Modified Files
-The following files were modified or added by me as partof this assignment
+The following files were modified or added as part of this assignment
 
 * games/chess/state.cpp
 * games/chess/state.h

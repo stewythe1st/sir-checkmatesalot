@@ -28,6 +28,8 @@
 static int			pruned;
 static int			expanded;
 static clock_t		endTime;
+static int			moves				= 0;
+static int			estimatedMoves		= 200;
 
 
 /******************************************************
@@ -47,11 +49,21 @@ void getStats( int& p, int& e )
 ******************************************************/
 void id_minimax( Chess::State* root, Chess::State* bestAction, int maxDepth, double time )
 	{
-	//endTime = clock() + ( time * 0.03 / 1000000000 * CLOCKS_PER_SEC );
-	endTime = clock() + ( 5 * CLOCKS_PER_SEC );
+
+	// Update vars
+	moves++;
 	pruned = 0;
 	expanded = 0;
-	for( int i = 1; i <= maxDepth; i++ )
+
+	// Calculate allowed time
+	if( moves > ( estimatedMoves - MOVES_THRESHOLD ) )
+		{
+		estimatedMoves++;
+		}
+	endTime = clock() + ( time / NS_PER_SEC / estimatedMoves * CLOCKS_PER_SEC * TIME_CLARITY_FACTOR );
+
+	// Iteratively call minimax
+	for( int i = 1; i <= maxDepth && clock() < endTime; i++ )
 		{
 		minimax( root, i, bestAction );
 		}
