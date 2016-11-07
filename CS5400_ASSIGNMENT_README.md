@@ -8,14 +8,6 @@ Stuart Miller<br>
 Missouri University of Science & Technology<br>
 CS 5400: Artificial Intelligence<br>
 
-
-####Configurable Parameters
-All configurable parameters can be found as compiler constants in hueristicVal.h.
-
-* Minimax Depth (MINIMAX_DEPTH)
-* Piece-Values (PAWNVAL, ROOKVAL, etc...)
-* Other Hueristic Values (misc. constants)
-
 ####Modified Files
 The following files were modified or added as part of this assignment
 
@@ -25,4 +17,3 @@ The following files were modified or added as part of this assignment
 * games/chess/minimax.h
 * games/chess/ai.cpp
 * games/chess/ai.h
-* games/chess/hueristicVal.h

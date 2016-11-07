@@ -14,7 +14,6 @@
 #include "player.h"
 #include "game.h"
 #include "piece.h"
-#include "hueristicVal.h"
 #include <map>
 #include <cmath>
 
@@ -48,6 +47,77 @@ static const int index64[ 64 ] = {
 	};
 static const int knightMoves[ 8 ]	= { -17, -15, -10, -6, 6, 10, 15, 17 };
 static const int kingMoves[ 8 ]		= {  -9,  -8,  -7, -1, 1,  7,  8,  9 };
+static const int pawnSquareVal[ 64 ] = {
+	0, 0, 0, 0, 0, 0, 0, 0,
+	50, 50, 50, 50, 50, 50, 50, 50,
+	10, 10, 20, 30, 30, 20, 10, 10,
+	5, 5, 10, 25, 25, 10, 5, 5,
+	0, 0, 0, 20, 20, 0, 0, 0,
+	5, -5, -10, 0, 0, -10, -5, 5,
+	5, 10, 10, -20, -20, 10, 10, 5,
+	0, 0, 0, 0, 0, 0, 0, 0
+	};
+static const int knightSquareVal[ 64 ] = {
+	-50,-40,-30,-30,-30,-30,-40,-50,
+	-40,-20,  0,  0,  0,  0,-20,-40,
+	-30,  0, 10, 15, 15, 10,  0,-30,
+	-30,  5, 15, 20, 20, 15,  5,-30,
+	-30,  0, 15, 20, 20, 15,  0,-30,
+	-30,  5, 10, 15, 15, 10,  5,-30,
+	-40,-20,  0,  5,  5,  0,-20,-40,
+	-50,-40,-30,-30,-30,-30,-40,-50,
+	};
+static const int bishopSquareVal[ 64 ] = {
+	-20,-10,-10,-10,-10,-10,-10,-20,
+	-10,  0,  0,  0,  0,  0,  0,-10,
+	-10,  0,  5, 10, 10,  5,  0,-10,
+	-10,  5,  5, 10, 10,  5,  5,-10,
+	-10,  0, 10, 10, 10, 10,  0,-10,
+	-10, 10, 10, 10, 10, 10, 10,-10,
+	-10,  5,  0,  0,  0,  0,  5,-10,
+	-20,-10,-10,-10,-10,-10,-10,-20,
+	};
+static const int rookSquareVal[ 64 ] = {
+	0,  0,  0,  0,  0,  0,  0,  0,
+	5, 10, 10, 10, 10, 10, 10,  5,
+	-5,  0,  0,  0,  0,  0,  0, -5,
+	-5,  0,  0,  0,  0,  0,  0, -5,
+	-5,  0,  0,  0,  0,  0,  0, -5,
+	-5,  0,  0,  0,  0,  0,  0, -5,
+	-5,  0,  0,  0,  0,  0,  0, -5,
+	0,  0,  0,  5,  5,  0,  0,  0
+	};
+static const int queenSquareVal[ 64 ] = {
+	-20,-10,-10, -5, -5,-10,-10,-20,
+	-10,  0,  0,  0,  0,  0,  0,-10,
+	-10,  0,  5,  5,  5,  5,  0,-10,
+	-5,  0,  5,  5,  5,  5,  0, -5,
+	0,  0,  5,  5,  5,  5,  0, -5,
+	-10,  5,  5,  5,  5,  5,  0,-10,
+	-10,  0,  5,  0,  0,  0,  0,-10,
+	-20,-10,-10, -5, -5,-10,-10,-20
+	};
+static const int kingMidgameSquareVal[ 64 ] = {
+	-30,-40,-40,-50,-50,-40,-40,-30,
+	-30,-40,-40,-50,-50,-40,-40,-30,
+	-30,-40,-40,-50,-50,-40,-40,-30,
+	-30,-40,-40,-50,-50,-40,-40,-30,
+	-20,-30,-30,-40,-40,-30,-30,-20,
+	-10,-20,-20,-20,-20,-20,-20,-10,
+	20, 20,  0,  0,  0,  0, 20, 20,
+	20, 30, 10,  0,  0, 10, 30, 20
+	};
+static const int kingEndgameSquareVal[ 64 ] = {
+	-50,-40,-30,-20,-20,-30,-40,-50,
+	-30,-20,-10,  0,  0,-10,-20,-30,
+	-30,-10, 20, 30, 30, 20,-10,-30,
+	-30,-10, 30, 40, 40, 30,-10,-30,
+	-30,-10, 30, 40, 40, 30,-10,-30,
+	-30,-10, 20, 30, 30, 20,-10,-30,
+	-30,-30,  0,  0,  0,  0,-30,-30,
+	-50,-30,-30,-30,-30,-30,-30,-50
+	};
+static const int* squareVals[ 6 ] = { pawnSquareVal, rookSquareVal, knightSquareVal, bishopSquareVal, queenSquareVal, kingMidgameSquareVal };
 
 
 /******************************************************
@@ -282,29 +352,53 @@ void Chess::State::Actions( std::vector<Chess::State*>& frontier, int player )
 	Bitboard all = allMy | allOpp;
 
 	/**************************************************
-	* Pawn Move Validation
+	* Queen Move Validation
 	**************************************************/
-	pieces = *pawns;
+	pieces = *queens;
 	while( ( idx = bitScanForward( pieces ) ) != -1 )
 		{
 		pieces.reset( idx );
-		new_idx = idx + ( 7 * dir );
-		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( frontier, idx, new_idx, pawns, player );
-		else if( ( getRankNum(new_idx) == 5 || getRankNum(new_idx) == 2 ) && misc.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( frontier, idx, new_idx, pawns, player );
-		new_idx = idx + ( 8 * dir );
-		if( isValidIdx( new_idx ) && !all.test( new_idx ) )
-			addMove( frontier, idx, new_idx, pawns, player );
-		new_idx = idx + ( 9 * dir );
-		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( frontier, idx, new_idx, pawns, player );
-		else if( ( getRankNum( new_idx ) == 5 || getRankNum( new_idx ) == 2 ) && misc.test( new_idx ) && !oneRowCross( idx, new_idx ) )
-			addMove( frontier, idx, new_idx, pawns, player );
-		if( getRankNum( idx ) == pawnRank && !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
-			addMove( frontier, idx, idx + ( 16 * dir ), pawns, player );
-		}
-			
+		for( i = idx + 8; ( isValidIdx( i ) && !allMy.test( i ) ); i += 8 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx - 8; ( isValidIdx( i ) && !allMy.test( i ) ); i -= 8 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx + 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i += 1 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx - 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i -= 1 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx + 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i += 9 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx - 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i -= 9 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx + 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i += 7 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		for( i = idx - 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i -= 7 )
+			{
+			addMove( frontier, idx, i, queens, player );
+			if( allOpp.test( i ) ) break;
+			}
+		}			
 
 	/**************************************************
 	* Rook Move Validation
@@ -365,55 +459,6 @@ void Chess::State::Actions( std::vector<Chess::State*>& frontier, int player )
 		}
 
 	/**************************************************
-	* Queen Move Validation
-	**************************************************/
-	pieces = *queens;
-	while( ( idx = bitScanForward( pieces ) ) != -1 )
-		{
-		pieces.reset( idx );
-		for( i = idx + 8; ( isValidIdx( i ) && !allMy.test( i ) ); i += 8 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx - 8; ( isValidIdx( i ) && !allMy.test( i ) ); i -= 8 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx + 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i += 1 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx - 1; ( isValidIdx( i ) && !allMy.test( i ) ) && inSameRow( idx, i ); i -= 1 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx + 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i += 9 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx - 9; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i -= 9 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx + 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 7 ) ); i += 7 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		for( i = idx - 7; ( isValidIdx( i ) && !allMy.test( i ) && ( getFileNum( i ) != 0 ) ); i -= 7 )
-			{
-			addMove( frontier, idx, i, queens, player );
-			if( allOpp.test( i ) ) break;
-			}
-		}
-
-	/**************************************************
 	* Knight Move Validation
 	**************************************************/
 	pieces = *knights;
@@ -444,6 +489,30 @@ void Chess::State::Actions( std::vector<Chess::State*>& frontier, int player )
 	new_idx += 7;
 	if( misc.test( new_idx ) && !misc.test( new_idx + 1 ) && !misc.test( new_idx + 2 ) )
 		addMove( frontier, idx, new_idx, king, player );
+
+	/**************************************************
+	* Pawn Move Validation
+	**************************************************/
+	pieces = *pawns;
+	while( ( idx = bitScanForward( pieces ) ) != -1 )
+		{
+		pieces.reset( idx );
+		new_idx = idx + ( 7 * dir );
+		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
+		else if( ( getRankNum( new_idx ) == 5 || getRankNum( new_idx ) == 2 ) && misc.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
+		new_idx = idx + ( 8 * dir );
+		if( isValidIdx( new_idx ) && !all.test( new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
+		new_idx = idx + ( 9 * dir );
+		if( isValidIdx( new_idx ) && allOpp.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
+		else if( ( getRankNum( new_idx ) == 5 || getRankNum( new_idx ) == 2 ) && misc.test( new_idx ) && !oneRowCross( idx, new_idx ) )
+			addMove( frontier, idx, new_idx, pawns, player );
+		if( getRankNum( idx ) == pawnRank && !all.test( idx + ( 16 * dir ) ) && !all.test( idx + ( 8 * dir ) ) )
+			addMove( frontier, idx, idx + ( 16 * dir ), pawns, player );
+		}
 
 	return;
 	}
@@ -690,25 +759,6 @@ void Chess::State::addMove( std::vector<Chess::State*>& frontier, int from_idx, 
 **************************************************************/
 void Chess::State::calcScore()
 	{
-	/*
-	Bitboard* myBitboards[ 6 ]{ &myPawns, &myRooks, &myKnights, &myBishops, &myQueens, &myKing };
-	score = 0;
-	int i, idx;
-	Bitboard pieces;
-	for( i = 0; i < 6; i++ )
-		{
-		pieces = *myBitboards[ i ];
-		while( ( idx = bitScanForward( pieces ) ) != -1 )
-			{
-			pieces.reset( idx );
-			if( color == WHITE )
-				idx = 63 - idx;
-			score += ( squareVals[ i ] )[ idx ];
-			}
-		}
-	return;
-	*/
-	
 	Bitboard pawns = myPawns;
 	int idx, i, pawnsInFile;
 
@@ -762,16 +812,35 @@ void Chess::State::calcScore()
 			isolatedPawns++;
 	}
 
-	// Calculate score
-	score = 0;
-	score += KINGVAL * ( myKing.count() - oppKing.count() );
-	score += QUEENVAL * ( myQueens.count() - oppQueens.count() );
-	score += ROOKVAL * ( myRooks.count() - oppRooks.count() );
-	score += KNIGHTVAL * ( myKnights.count() - oppKnights.count() );
-	score += BISHOPVAL * ( myBishops.count() - oppBishops.count() );
-	score += PAWNVAL * ( myPawns.count() - oppPawns.count() );
-	score -= PAWNPENALTY * ( blockedPawns + doubledPawns + isolatedPawns );
+	// Add piece values to score
+	int pieceValScore = 0;
+	pieceValScore += KINGVAL * ( myKing.count() - oppKing.count() );
+	pieceValScore += QUEENVAL * ( myQueens.count() - oppQueens.count() );
+	pieceValScore += ROOKVAL * ( myRooks.count() - oppRooks.count() );
+	pieceValScore += KNIGHTVAL * ( myKnights.count() - oppKnights.count() );
+	pieceValScore += BISHOPVAL * ( myBishops.count() - oppBishops.count() );
+	pieceValScore += PAWNVAL * ( myPawns.count() - oppPawns.count() );
+	pieceValScore -= PAWNPENALTY * ( blockedPawns + doubledPawns + isolatedPawns );
+
+	// Calculate board position values (piece-square value)
+	Bitboard* myBitboards[ 6 ]{ &myPawns, &myRooks, &myKnights, &myBishops, &myQueens, &myKing };
+	Bitboard pieces;
+	int pieceSquareScore = 0;
+	for( i = 0; i < 6; i++ )
+		{
+		pieces = *myBitboards[ i ];
+		while( ( idx = bitScanForward( pieces ) ) != -1 )
+			{
+			pieces.reset( idx );
+			if( color == WHITE )
+				idx = 63 - idx;
+			pieceSquareScore += ( squareVals[ i ] )[ idx ];
+			}
+		}
 	
+	// Assign score
+	score = pieceValScore + (int)( 0.1 * (float)pieceSquareScore );
+
 	return;
 	}
 

@@ -27,18 +27,20 @@
 ******************************************************/
 static int			pruned;
 static int			expanded;
+static int			depth;
 static clock_t		endTime;
-static int			moves				= 0;
-static int			estimatedMoves		= 200;
+static int			moves = 0;
+static int			estimatedMoves = MOVES_ESTIMATE;
 
 
 /******************************************************
 * Return Statistics
 ******************************************************/
-void getStats( int& p, int& e )
+void getStats( int& p, int& e, int& d )
 	{
 	p = pruned;
 	e = expanded;
+	d = depth;
 	return;
 	}
 
@@ -47,25 +49,41 @@ void getStats( int& p, int& e )
 * Iterative Deepening Minimax Root Call
 * time is given in ns
 ******************************************************/
-void id_minimax( Chess::State* root, Chess::State* bestAction, int maxDepth, double time )
+void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 	{
 
 	// Update vars
 	moves++;
 	pruned = 0;
 	expanded = 0;
+	Chess::State fallbackAction;
 
 	// Calculate allowed time
 	if( moves > ( estimatedMoves - MOVES_THRESHOLD ) )
 		{
 		estimatedMoves++;
 		}
-	endTime = clock() + ( time / NS_PER_SEC / estimatedMoves * CLOCKS_PER_SEC * TIME_CLARITY_FACTOR );
+	endTime = clock() + ( time / NS_PER_SEC / estimatedMoves * CLOCKS_PER_SEC );
 
 	// Iteratively call minimax
-	for( int i = 1; i <= maxDepth && clock() < endTime; i++ )
+	int toIdx, fromIdx;
+	for( depth = 1; depth < DEPTH_SANITY_LIMIT; depth++ )
 		{
-		minimax( root, i, bestAction );
+		fallbackAction = *bestAction;
+		std::cout << "  Depth " << depth << ": ";
+		minimax( root, depth, bestAction );
+		if( clock() > endTime )
+			{
+			*bestAction = fallbackAction;
+			std::cout << "Ran out of time!" << std::endl;
+			break;
+			}
+		else
+			{
+			toIdx = ( bestAction->misc.to_ullong() & TOIDX_MASK ) >> TOIDX_BITSHIFT;
+			fromIdx = ( bestAction->misc.to_ullong() & FROMIDX_MASK ) >> FROMIDX_BITSHIFT;
+			std::cout << "Chose " << ( char )( ( fromIdx % 8 ) + 'a' ) << ( fromIdx / 8 ) + 1 << " to " << ( char )( ( toIdx % 8 ) + 'a' ) << ( toIdx / 8 ) + 1 << std::endl;
+			}
 		}
 	return;
 	}
@@ -87,7 +105,7 @@ static void minimax( Chess::State* root, int depth, Chess::State* bestAction )
 * If the passed state pointer is non-null, it will also
 * return a pointer to the maximum valued state
 ******************************************************/
-static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMax m, Chess::State* bestAction )
+static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMax m, Chess::State* returnAction )
 	{
 	// Check depth limit
 	if( depth == 0 )
@@ -99,6 +117,7 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 	std::vector<Chess::State*>	frontier;
 	int							val;
 	int							bestVal = ( m == MIN ? INT_MAX : INT_MIN );
+	Chess::State*				bestAction;
 
 	// Build frontier
 	state->Actions( frontier, ( m == MIN ? OPPONENT : ME ) );
@@ -115,11 +134,15 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 			( *runner )->score = val;
 
 			// Update values if better state found
-			bestVal = MIN( val, bestVal );
+			if( val < bestVal )
+				{
+				bestVal = val;
+				bestAction = ( *runner );
+				}
 			beta = MIN( val, beta );
 
-			// Prune if fail-high
-			if( alpha >= beta )
+			// Prune if fail-low
+			if( val <= alpha )
 				{
 				pruned++;
 				break;
@@ -132,14 +155,17 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 		for( runner; runner != frontier.end() && clock() < endTime; runner++ )
 			{
 			val = minMaxVal( *runner, alpha, beta, depth - 1, MIN, nullptr );
-			( *runner )->score = val;
 
 			// Update values if better state found
-			bestVal = MAX( val, bestVal );
+			if( val > bestVal )
+				{
+				bestVal = val;
+				bestAction = ( *runner );
+				}
 			alpha = MAX( val, alpha );
 
-			// Prune if fail-low
-			if( beta <= alpha )
+			// Prune if fail-high
+			if( val >= beta )
 				{
 				pruned++;
 				break;
@@ -150,12 +176,10 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 	// Free memory (and return if root call)
 	for( int i = 0; i < frontier.size(); i++ )
 		{
-		if( bestAction != nullptr && frontier[ i ]->score == bestVal )
+		if( returnAction != nullptr && frontier[ i ] == bestAction )
 			{
-			*bestAction = *frontier[ i ];
-			return bestVal;
+			*returnAction = *bestAction;
 			}
-			
 		else
 			{
 			delete frontier[ i ];

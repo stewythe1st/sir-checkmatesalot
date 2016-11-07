@@ -11,7 +11,6 @@
 **************************************************************/
 #include "ai.h"
 #include "minimax.h"
-#include "hueristicVal.h"
 #include <algorithm>
 
 
@@ -94,8 +93,8 @@ bool Chess::AI::runTurn()
 	std::cout << "  FEN: " << this->game->fen << std::endl;
 
     // Print how much time remaining this AI has to calculate moves
-	int ms = this->player->timeRemaining / 1000000;
-    std::cout << "  Time Remaining: " <<  ms / 60000  << ":" << ( ms / 1000 ) % 60 << "." << ms % 1000 << std::endl;
+	int start_ms = this->player->timeRemaining / 1000000;
+    std::cout << "  Time Remaining: " <<  start_ms / 60000  << ":" << ( start_ms / 1000 ) % 60 << "." << start_ms % 1000 << std::endl;
 
 	// Build initial state for this move
 	Chess::State initial( this );
@@ -103,17 +102,20 @@ bool Chess::AI::runTurn()
 
 	// Call minimax
 	std::cout << "Calculating Best Move:" << std::endl;
-	id_minimax( &initial, &bestAction, MINIMAX_DEPTH, this->player->timeRemaining );
+	id_minimax( &initial, &bestAction, this->player->timeRemaining );
 
 	// Make our chosen move
 	executeMove( &bestAction );
 
 	// Print node stats
-	int pruned, expanded;
-	getStats( pruned, expanded );
+	int pruned, expanded, depth;
+	getStats( pruned, expanded, depth );
 	std::cout << "Statistics: " << std::endl;
 	std::cout << "  Pruned Nodes: " << pruned << std::endl;
 	std::cout << "  Expanded Nodes: " << expanded << std::endl;
+	int end_ms = start_ms - ( this->player->timeRemaining / 1000000 );
+	std::cout << "  Time Spent: " << end_ms / 1000 << "." << end_ms % 1000 << "s" << std::endl;
+	std::cout << "  Depth Achieved: " << depth - 1 << std::endl;
 
 	// Done
 	std::cout << "----------------------------------------------" << std::endl;

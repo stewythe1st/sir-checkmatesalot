@@ -17,7 +17,8 @@
 * Compiler Constants
 ******************************************************/
 #define MOVES_THRESHOLD		( 40 )
-#define TIME_CLARITY_FACTOR ( 0.5 )
+#define MOVES_ESTIMATE		( 180 )
+#define DEPTH_SANITY_LIMIT	( 20 )
 #define NS_PER_SEC			( 1000000000 )
 
 
@@ -30,8 +31,8 @@ typedef enum { MIN, MAX } MinMax;
 /******************************************************
 * Definitions
 ******************************************************/
-void getStats( int& p, int& e );
-void id_minimax( Chess::State* root, Chess::State* bestAction, int maxDepth, double time );
+void getStats( int& p, int& e, int & d );
+void id_minimax( Chess::State* root, Chess::State* bestAction, double time );
 static void minimax( Chess::State* root, int depth, Chess::State* bestAction );
 static int minMaxVal( Chess::State * state, int alpha, int beta, int depth, MinMax m, Chess::State * bestAction );
 
