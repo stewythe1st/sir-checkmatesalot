@@ -1,6 +1,9 @@
 # ignoring my endgame tables, for now
 games/chess/endgametables
 
+# VS autorecover
+~AutoRecover.*
+
 
 # Compiled Object files
 *.slo

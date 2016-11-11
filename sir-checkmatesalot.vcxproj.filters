@@ -69,6 +69,9 @@
     <ClInclude Include="games\chess\minimax.h">
       <Filter>chess</Filter>
     </ClInclude>
+    <ClInclude Include="games\chess\globals.h">
+      <Filter>chess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -115,6 +118,9 @@
       <Filter>chess</Filter>
     </ClCompile>
     <ClCompile Include="games\chess\minimax.cpp">
+      <Filter>chess</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\globals.cpp">
       <Filter>chess</Filter>
     </ClCompile>
   </ItemGroup>

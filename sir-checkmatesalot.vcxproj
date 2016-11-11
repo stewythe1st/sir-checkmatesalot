@@ -26,6 +26,7 @@
     <ClInclude Include="games\chess\game.h" />
     <ClInclude Include="games\chess\gameManager.h" />
     <ClInclude Include="games\chess\gameObject.h" />
+    <ClInclude Include="games\chess\globals.h" />
     <ClInclude Include="games\chess\hueristicVal.h" />
     <ClInclude Include="games\chess\minimax.h" />
     <ClInclude Include="games\chess\move.h" />
@@ -49,6 +50,7 @@
     <ClCompile Include="games\chess\game.cpp" />
     <ClCompile Include="games\chess\gameManager.cpp" />
     <ClCompile Include="games\chess\gameObject.cpp" />
+    <ClCompile Include="games\chess\globals.cpp" />
     <ClCompile Include="games\chess\minimax.cpp" />
     <ClCompile Include="games\chess\move.cpp" />
     <ClCompile Include="games\chess\piece.cpp" />
