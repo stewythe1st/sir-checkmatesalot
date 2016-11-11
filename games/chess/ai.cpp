@@ -11,6 +11,8 @@
 **************************************************************/
 #include "ai.h"
 #include "minimax.h"
+#include "globals.h"
+#include <fstream>
 #include <algorithm>
 
 
@@ -31,6 +33,8 @@ std::string Chess::AI::getName() { return "Sir Checkmatesalot"; }
 **************************************************************/
 void Chess::AI::start()
 	{
+		
+	// Print startup text
 	std::cout << "       ___ _" << std::endl
 			  << "      / __\\ |___   ___  ___ ___  " << std::endl
 			  << "     / /  | '_  \\ / _ \\/ __/ __| " << std::endl
@@ -39,6 +43,38 @@ void Chess::AI::start()
 	std::cout << "----------------------------------------------" << std::endl;
 	std::cout << this->game->currentPlayer->name << " vs. " << this->game->currentPlayer->opponent->name << std::endl;
 	std::cout << "----------------------------------------------" << std::endl;
+	
+	// Read in cfg values
+	std::ifstream fileIn;
+	std::string line, name, value;
+	std::cout << "Reading in Configuration:" << std::endl;
+	fileIn.open( "games/chess/conf/chess.cfg" );
+	while( std::getline( fileIn, line ) )
+		{
+
+		// Strip comments
+		line = line.substr( 0, line.find( '#' ) );
+
+		// Strip whitespace
+		line.erase( std::remove( line.begin(), line.end(), ' ' ), line.end() );
+		line.erase( std::remove( line.begin(), line.end(), '\n' ), line.end() );
+		line.erase( std::remove( line.begin(), line.end(), '\r' ), line.end() );
+		line.erase( std::remove( line.begin(), line.end(), '\t' ), line.end() );
+
+		if( line.length() > 0 )
+			{
+			// Read parameter name
+			name = line.substr( 0, line.find( "=" ) );
+			std::transform( name.begin(), name.end(), name.begin(), ::tolower );
+
+			// Read value
+			value = line.substr( line.find( "=" ) + 1 );
+
+			setGlobal( name, value );
+			}
+		}	
+	fileIn.close();
+
 	return;
 	}
 

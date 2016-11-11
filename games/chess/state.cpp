@@ -14,6 +14,7 @@
 #include "player.h"
 #include "game.h"
 #include "piece.h"
+#include "globals.h"
 #include <map>
 #include <cmath>
 
@@ -814,13 +815,13 @@ void Chess::State::calcScore()
 
 	// Add piece values to score
 	int pieceValScore = 0;
-	pieceValScore += KINGVAL * ( myKing.count() - oppKing.count() );
-	pieceValScore += QUEENVAL * ( myQueens.count() - oppQueens.count() );
-	pieceValScore += ROOKVAL * ( myRooks.count() - oppRooks.count() );
-	pieceValScore += KNIGHTVAL * ( myKnights.count() - oppKnights.count() );
-	pieceValScore += BISHOPVAL * ( myBishops.count() - oppBishops.count() );
-	pieceValScore += PAWNVAL * ( myPawns.count() - oppPawns.count() );
-	pieceValScore -= PAWNPENALTY * ( blockedPawns + doubledPawns + isolatedPawns );
+	pieceValScore += kingVal * ( myKing.count() - oppKing.count() );
+	pieceValScore += queenVal * ( myQueens.count() - oppQueens.count() );
+	pieceValScore += rookVal * ( myRooks.count() - oppRooks.count() );
+	pieceValScore += knightVal * ( myKnights.count() - oppKnights.count() );
+	pieceValScore += bishopVal * ( myBishops.count() - oppBishops.count() );
+	pieceValScore += pawnVal * ( myPawns.count() - oppPawns.count() );
+	pieceValScore -= pawnPenalty * ( blockedPawns + doubledPawns + isolatedPawns );
 
 	// Calculate board position values (piece-square value)
 	Bitboard* myBitboards[ 6 ]{ &myPawns, &myRooks, &myKnights, &myBishops, &myQueens, &myKing };

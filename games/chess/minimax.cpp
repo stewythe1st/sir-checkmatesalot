@@ -13,6 +13,7 @@
 #include "chess.h"
 #include "state.h"
 #include "minimax.h"
+#include "globals.h"
 #include <time.h>
 
 
@@ -30,7 +31,6 @@ static int			expanded;
 static int			depth;
 static clock_t		endTime;
 static int			moves = 0;
-static int			estimatedMoves = MOVES_ESTIMATE;
 
 
 /******************************************************
@@ -59,15 +59,15 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 	Chess::State fallbackAction;
 
 	// Calculate allowed time
-	if( moves > ( estimatedMoves - MOVES_THRESHOLD ) )
+	if( moves > ( movesEstimate - movesThreshold ) )
 		{
-		estimatedMoves++;
+		movesEstimate++;
 		}
-	endTime = clock() + ( time / NS_PER_SEC / estimatedMoves * CLOCKS_PER_SEC );
+	endTime = clock() + ( time / NS_PER_SEC / movesEstimate * CLOCKS_PER_SEC );
 
 	// Iteratively call minimax
 	int toIdx, fromIdx;
-	for( depth = 1; depth < DEPTH_SANITY_LIMIT; depth++ )
+	for( depth = 1; depth < maxDepth; depth++ )
 		{
 		fallbackAction = *bestAction;
 		std::cout << "  Depth " << depth << ": ";

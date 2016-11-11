@@ -26,15 +26,6 @@
 #define EN_PASSANT_MASK		0x0000FF0000FF0000
 #define CASTLE_MASK			0x8100000000000081
 
-#define KINGVAL		2000
-#define QUEENVAL	90
-#define ROOKVAL		50
-#define BISHOPVAL	30
-#define KNIGHTVAL	30
-#define PAWNVAL		10
-#define PAWNPENALTY	5
-#define MOBPENALTY	1
-
 enum { WHITE, BLACK };
 enum { ME, OPPONENT };
 
@@ -52,6 +43,7 @@ typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
 int bitScanForward( Bitboard bb );
 int getBitboardIdx( int rank, std::string file );
 void print_bitboard( Bitboard* bitboard );
+void setParam( std::string name, std::string value );
 
 
 /******************************************************

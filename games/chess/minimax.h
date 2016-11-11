@@ -16,9 +16,6 @@
 /******************************************************
 * Compiler Constants
 ******************************************************/
-#define MOVES_THRESHOLD		( 40 )
-#define MOVES_ESTIMATE		( 180 )
-#define DEPTH_SANITY_LIMIT	( 20 )
 #define NS_PER_SEC			( 1000000000 )
 
 
