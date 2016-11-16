@@ -14,7 +14,9 @@
 #include "state.h"
 #include "minimax.h"
 #include "globals.h"
+#include <algorithm>
 #include <time.h>
+#include <unordered_map>
 
 
 /******************************************************
@@ -22,6 +24,7 @@
 ******************************************************/
 #define MAX( x, y )		( ( x ) > ( y ) ? ( x ) : ( y ) )
 #define MIN( x, y )		( ( x ) < ( y ) ? ( x ) : ( y ) )
+
 
 /******************************************************
 * Variables
@@ -31,6 +34,8 @@ static int			expanded;
 static int			depth;
 static clock_t		endTime;
 static int			moves = 0;
+std::unordered_map<Chess::State, int, StateHash> 
+					historyTable;
 
 
 /******************************************************
@@ -56,7 +61,6 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 	moves++;
 	pruned = 0;
 	expanded = 0;
-	Chess::State fallbackAction;
 
 	// Calculate allowed time
 	if( moves > ( movesEstimate - movesThreshold ) )
@@ -67,6 +71,7 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 
 	// Iteratively call minimax
 	int toIdx, fromIdx;
+	Chess::State fallbackAction;
 	for( depth = 1; depth < maxDepth; depth++ )
 		{
 		fallbackAction = *bestAction;
@@ -118,17 +123,37 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 	int							val;
 	int							bestVal = ( m == MIN ? INT_MAX : INT_MIN );
 	Chess::State*				bestAction;
+	std::vector<Chess::State*>::iterator 
+								runner;
 
 	// Build frontier
 	state->Actions( frontier, ( m == MIN ? OPPONENT : ME ) );
 	expanded++;
 
-	// Evaluate each state in frontier
-	std::vector<Chess::State*>::iterator runner = frontier.begin();
+	if( frontier.size() == 0 )
+		{
+		return( m == MIN ? INT_MAX : INT_MIN );
+		}		
 
+	// Read history table and sort accordingly
+	for( runner = frontier.begin(); runner != frontier.end(); runner++ )
+		{
+		if( historyTable.find( *runner ) == historyTable.end() )
+			{
+			( *runner )->setHistoryVal( 0 );
+			}
+		else
+			{
+			( *runner )->setHistoryVal( historyTable[ *runner ] );
+			}
+		}
+	std::sort( frontier.begin(), frontier.end(), StateSort() );
+
+	// Evaluate each state in frontier
+	bestAction = frontier.front();
 	if( m == MIN )
 		{
-		for( runner; runner != frontier.end() && clock() < endTime; runner++ )
+		for( runner = frontier.begin(); runner != frontier.end() && clock() < endTime; runner++ )
 			{
 			val = minMaxVal( *runner, alpha, beta, depth - 1, MAX, nullptr );
 			( *runner )->score = val;
@@ -152,7 +177,7 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 
 	else // ( m == MAX )
 		{
-		for( runner; runner != frontier.end() && clock() < endTime; runner++ )
+		for( runner = frontier.begin(); runner != frontier.end() && clock() < endTime; runner++ )
 			{
 			val = minMaxVal( *runner, alpha, beta, depth - 1, MIN, nullptr );
 
@@ -171,6 +196,20 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 				break;
 				}
 			}
+		}
+
+	// Update history table
+	if( historyTable.find( *bestAction ) == historyTable.end() )
+		{
+		if( historyTable.size() >= histTableMaxSz )
+			{
+			historyTable.erase( historyTable.begin() );
+			}
+		historyTable[ bestAction ] = 0;
+		}
+	else
+		{
+		historyTable[ *bestAction ] += 1;
 		}
 
 	// Free memory (and return if root call)

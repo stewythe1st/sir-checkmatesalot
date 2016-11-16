@@ -26,6 +26,7 @@ extern int mobPenalty;
 extern int movesThreshold;
 extern int movesEstimate;
 extern int maxDepth;
+extern int histTableMaxSz;
 
 
 /******************************************************

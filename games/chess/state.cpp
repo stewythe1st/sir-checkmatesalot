@@ -17,6 +17,8 @@
 #include "globals.h"
 #include <map>
 #include <cmath>
+#include <functional>
+
 
 #define NOT_THREATENED	( -1 )
 
@@ -166,7 +168,24 @@ Chess::State& Chess::State::operator = ( Chess::State &rhs )
 	color		= rhs.color;
 	misc		= rhs.misc;
 	score		= rhs.score;
+	historyVal	= rhs.historyVal;
 	parent		= &rhs;
+	}
+
+bool Chess::State::operator == ( const Chess::State & other ) const
+	{
+	return 	myPawns == other.myPawns &&
+			myRooks == other.myRooks &&
+			myKnights == other.myKnights &&
+			myBishops == other.myBishops &&
+			myQueens == other.myQueens &&
+			myKing == other.myKing &&
+			oppPawns == other.oppPawns &&
+			oppRooks == other.oppRooks &&
+			oppKnights == other.oppKnights &&
+			oppBishops == other.oppBishops &&
+			oppQueens == other.oppQueens &&
+			oppKing == other.oppKing;
 	}
 
 

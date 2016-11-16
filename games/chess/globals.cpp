@@ -28,6 +28,7 @@ int mobPenalty;
 int	movesThreshold;
 int	movesEstimate;
 int	maxDepth;
+int histTableMaxSz;
 
 // Definition map
 static std::map<std::string, int*> valConvert = {
@@ -41,7 +42,8 @@ static std::map<std::string, int*> valConvert = {
 		{ "mobpenalty",		&mobPenalty },
 		{ "movesthreshold",	&movesThreshold },
 		{ "movesestimate",	&movesEstimate },
-		{ "maxdepth",		&maxDepth }
+		{ "maxdepth",		&maxDepth },
+		{ "histtablemaxsz", &histTableMaxSz }
 	};
 
 /**************************************************************

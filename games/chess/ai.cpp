@@ -13,6 +13,7 @@
 #include "minimax.h"
 #include "globals.h"
 #include <fstream>
+#include <iomanip>
 #include <algorithm>
 
 
@@ -130,7 +131,11 @@ bool Chess::AI::runTurn()
 
     // Print how much time remaining this AI has to calculate moves
 	int start_ms = this->player->timeRemaining / 1000000;
-    std::cout << "  Time Remaining: " <<  start_ms / 60000  << ":" << ( start_ms / 1000 ) % 60 << "." << start_ms % 1000 << std::endl;
+
+    std::cout << "  Time Remaining: " 
+			  <<  start_ms / 60000  << ":"
+			  << std::setw(2) << std::setfill( '0' ) << ( start_ms / 1000 ) % 60 << "." 
+			  << std::setw(3) << start_ms % 1000 << "s" << std::endl;
 
 	// Build initial state for this move
 	Chess::State initial( this );

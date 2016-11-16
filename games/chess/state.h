@@ -13,6 +13,7 @@
 #include "chess.h"
 #include "gameObject.h"
 #include <bitset>
+#include <boost/functional/hash.hpp>
 
 
 /******************************************************
@@ -43,7 +44,6 @@ typedef enum { PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING } PieceType;
 int bitScanForward( Bitboard bb );
 int getBitboardIdx( int rank, std::string file );
 void print_bitboard( Bitboard* bitboard );
-void setParam( std::string name, std::string value );
 
 
 /******************************************************
@@ -73,6 +73,7 @@ class Chess::State: public Chess::GameObject
 		Bitboard misc;
 
 		int score;
+		int historyVal;
 
 		State* parent;
 
@@ -88,8 +89,56 @@ class Chess::State: public Chess::GameObject
 		void addMove( std::vector<Chess::State*>& frontier, int from_idx, int to_idx, Bitboard * piece, int player );
 		void calcScore();
 		Chess::State& operator= ( Chess::State &rhs );
+		bool operator == ( const Chess::State & other ) const;
+
+		// Mutators
+		void setHistoryVal( int x ) { historyVal = x; };
+		int getHistoryVal() { return historyVal; };
 
 	};
 	void printMoves( std::vector<Chess::State*>* moves );
+
+
+	/**************************************************************
+	* State Hash Functor
+	* Overloads std::hash to handle State types. Relies on Boost's
+	* hash_combine() function. Only hashs board layout directly;
+	* other members of state are irrelevant for hashing.
+	**************************************************************/
+	struct StateHash
+		{
+		std::size_t operator()( const Chess::State& s ) const
+			{
+			std::size_t seed = 0;
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.myPawns ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.myRooks ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.myKnights ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.myBishops ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.myQueens ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.myKing ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.oppPawns ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.oppRooks ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.oppKnights ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.oppBishops ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.oppQueens ) );
+			boost::hash_combine( seed, std::hash<Bitboard>{}( s.oppKing ) );
+			return seed;
+			}
+		};
+
+
+	/**************************************************************
+	* State Sort Functor
+	* Allows std::sort to handle State types. Bases the comparison
+	* on each state's history table value, returning the higher
+	* value to result in a decending sort
+	**************************************************************/
+	struct StateSort
+		{
+		inline bool operator() ( const Chess::State* x, const Chess::State* y )
+			{
+			return( x->historyVal > y->historyVal );
+			}
+		};
 
 #endif
