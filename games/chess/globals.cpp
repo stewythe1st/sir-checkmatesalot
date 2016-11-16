@@ -16,6 +16,7 @@
 /******************************************************
 * Local Variables
 ******************************************************/
+static bool initialized = false;
 // Local defs of global variables
 int kingVal;
 int queenVal;
@@ -29,6 +30,7 @@ int	movesThreshold;
 int	movesEstimate;
 int	maxDepth;
 int histTableMaxSz;
+int quiescenceDepth;
 
 // Definition map
 static std::map<std::string, int*> valConvert = {
@@ -43,8 +45,10 @@ static std::map<std::string, int*> valConvert = {
 		{ "movesthreshold",	&movesThreshold },
 		{ "movesestimate",	&movesEstimate },
 		{ "maxdepth",		&maxDepth },
-		{ "histtablemaxsz", &histTableMaxSz }
+		{ "histtablemaxsz", &histTableMaxSz },
+		{ "quiescencedepth",&quiescenceDepth }
 	};
+
 
 /**************************************************************
 * Set Global
@@ -52,6 +56,10 @@ static std::map<std::string, int*> valConvert = {
 **************************************************************/
 void setGlobal( std::string name, std::string value )
 	{
+	if( !initialized )
+		{
+		initGlobals();
+		}
 	if( valConvert.find( name ) != valConvert.end() )
 		{
 		int* numericVal = valConvert[ name ];
@@ -66,4 +74,28 @@ void setGlobal( std::string name, std::string value )
 		std::cout << "  Parameter " << name << " not found" << std::endl;
 		}
 	return;
+	}
+
+/**************************************************************
+* Initialize Globals
+* Sets all global variables to pre-established default values.
+* These are backup values in case a user edits the cfg file
+* and accidentally removes a value assignment.
+**************************************************************/
+void initGlobals()
+	{
+	kingVal = 2000;
+	queenVal = 90;
+	rookVal = 50;
+	bishopVal = 30;
+	knightVal = 30;
+	pawnVal = 10;
+	pawnPenalty = 5;
+	mobPenalty = 1;
+	movesThreshold = 40;
+	movesEstimate = 150;
+	maxDepth = 20;
+	histTableMaxSz = 100000;
+	quiescenceDepth = 2;
+	initialized = true;
 	}

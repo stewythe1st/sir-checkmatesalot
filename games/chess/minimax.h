@@ -28,9 +28,9 @@ typedef enum { MIN, MAX } MinMax;
 /******************************************************
 * Definitions
 ******************************************************/
-void getStats( int& p, int& e, int & d );
+void getStats( int& p, int& e, int& enq, int & d );
 void id_minimax( Chess::State* root, Chess::State* bestAction, double time );
-static void minimax( Chess::State* root, int depth, Chess::State* bestAction );
-static int minMaxVal( Chess::State * state, int alpha, int beta, int depth, MinMax m, Chess::State * bestAction );
+static void minimax( Chess::State* root, int depth, int qDepth, Chess::State* bestAction );
+static int minMaxVal( Chess::State * state, int alpha, int beta, int depth, int qDepth, MinMax m, Chess::State * bestAction );
 
 #endif

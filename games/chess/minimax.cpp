@@ -31,6 +31,7 @@
 ******************************************************/
 static int			pruned;
 static int			expanded;
+static int			expandedNQ;
 static int			depth;
 static clock_t		endTime;
 static int			moves = 0;
@@ -41,10 +42,11 @@ std::unordered_map<Chess::State, int, StateHash>
 /******************************************************
 * Return Statistics
 ******************************************************/
-void getStats( int& p, int& e, int& d )
+void getStats( int& p, int& e, int& enq, int& d )
 	{
 	p = pruned;
 	e = expanded;
+	enq = expandedNQ;
 	d = depth;
 	return;
 	}
@@ -76,7 +78,7 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 		{
 		fallbackAction = *bestAction;
 		std::cout << "  Depth " << depth << ": ";
-		minimax( root, depth, bestAction );
+		minimax( root, depth, quiescenceDepth, bestAction );
 		if( clock() > endTime )
 			{
 			*bestAction = fallbackAction;
@@ -97,9 +99,9 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 /******************************************************
 * Minimax Root Call
 ******************************************************/
-static void minimax( Chess::State* root, int depth, Chess::State* bestAction )
+static void minimax( Chess::State* root, int depth, int qDepth, Chess::State* bestAction )
 	{
-	minMaxVal( root, INT_MIN, INT_MAX, depth, MAX, bestAction );
+	minMaxVal( root, INT_MIN, INT_MAX, depth, qDepth, MAX, bestAction );
 	return;
 	}
 
@@ -110,12 +112,24 @@ static void minimax( Chess::State* root, int depth, Chess::State* bestAction )
 * If the passed state pointer is non-null, it will also
 * return a pointer to the maximum valued state
 ******************************************************/
-static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMax m, Chess::State* returnAction )
+static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, int qDepth, MinMax m, Chess::State* returnAction )
 	{
-	// Check depth limit
+	// Check depth limits
 	if( depth == 0 )
 		{
-		return state->score;
+		if( qDepth == 0 || !state->isNonQuiescent() )
+			{
+			return state->score;
+			}
+		else
+			{
+			expandedNQ++;
+			qDepth--;
+			}
+		}
+	else
+		{
+		depth--;
 		}
 
 	// Declarations
@@ -155,7 +169,7 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 		{
 		for( runner = frontier.begin(); runner != frontier.end() && clock() < endTime; runner++ )
 			{
-			val = minMaxVal( *runner, alpha, beta, depth - 1, MAX, nullptr );
+			val = minMaxVal( *runner, alpha, beta, depth, qDepth, MAX, nullptr );
 			( *runner )->score = val;
 
 			// Update values if better state found
@@ -179,7 +193,7 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, MinMa
 		{
 		for( runner = frontier.begin(); runner != frontier.end() && clock() < endTime; runner++ )
 			{
-			val = minMaxVal( *runner, alpha, beta, depth - 1, MIN, nullptr );
+			val = minMaxVal( *runner, alpha, beta, depth, qDepth, MIN, nullptr );
 
 			// Update values if better state found
 			if( val > bestVal )

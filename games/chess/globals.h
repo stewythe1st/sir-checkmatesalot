@@ -27,12 +27,14 @@ extern int movesThreshold;
 extern int movesEstimate;
 extern int maxDepth;
 extern int histTableMaxSz;
+extern int quiescenceDepth;
 
 
 /******************************************************
 * Function Declarations
 ******************************************************/
 void setGlobal( std::string name, std::string value );
+void initGlobals();
 
 
 #endif

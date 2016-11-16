@@ -86,6 +86,7 @@ class Chess::State: public Chess::GameObject
 
 		void Actions( std::vector<Chess::State*>& frontier, int player );
 		int isThreatened( int idx, int to_idx, int from_idx, int player );
+		bool isNonQuiescent();
 		void addMove( std::vector<Chess::State*>& frontier, int from_idx, int to_idx, Bitboard * piece, int player );
 		void calcScore();
 		Chess::State& operator= ( Chess::State &rhs );

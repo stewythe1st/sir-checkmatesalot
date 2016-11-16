@@ -296,6 +296,32 @@ Chess::State::State( Chess::AI* ai )
 
 
 /******************************************************
+* Is State NonQuiescent?
+* Hueristic for determining nonquiescence. Simply
+* checks if either player is in check.
+******************************************************/
+bool Chess::State::isNonQuiescent()
+	{
+	int kingIdx;
+
+	// Check if we're in check
+	kingIdx = bitScanForward( myKing );
+	if( isThreatened( kingIdx, kingIdx, kingIdx, ME ) != NOT_THREATENED )
+		{
+		return true;
+		}
+	
+	// Check if we've put our opponent in check
+	kingIdx = bitScanForward( oppKing );
+	if( isThreatened( kingIdx, kingIdx, kingIdx, OPPONENT ) != NOT_THREATENED )
+		{
+		return true;
+		}
+
+	return false;
+	}
+
+/******************************************************
 * Get Bitboard Index
 * Converts rank and file to a bitboard index
 ******************************************************/

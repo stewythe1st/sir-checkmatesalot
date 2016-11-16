@@ -149,11 +149,12 @@ bool Chess::AI::runTurn()
 	executeMove( &bestAction );
 
 	// Print node stats
-	int pruned, expanded, depth;
-	getStats( pruned, expanded, depth );
+	int pruned, expanded, expandedNQ, depth;
+	getStats( pruned, expanded, expandedNQ, depth );
 	std::cout << "Statistics: " << std::endl;
 	std::cout << "  Pruned Nodes: " << pruned << std::endl;
 	std::cout << "  Expanded Nodes: " << expanded << std::endl;
+	std::cout << "  Expanded NonQuiescent Nodes: " << expandedNQ << std::endl;
 	int end_ms = start_ms - ( this->player->timeRemaining / 1000000 );
 	std::cout << "  Time Spent: " << end_ms / 1000 << "." << end_ms % 1000 << "s" << std::endl;
 	std::cout << "  Depth Achieved: " << depth - 1 << std::endl;
