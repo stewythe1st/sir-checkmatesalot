@@ -15,6 +15,7 @@
 #include "minimax.h"
 #include "globals.h"
 #include <algorithm>
+#include <chrono>
 #include <time.h>
 #include <unordered_map>
 
@@ -24,6 +25,7 @@
 ******************************************************/
 #define MAX( x, y )		( ( x ) > ( y ) ? ( x ) : ( y ) )
 #define MIN( x, y )		( ( x ) < ( y ) ? ( x ) : ( y ) )
+#define GET_TIME_MS()	( (unsigned long long )( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() ) )
 
 
 /******************************************************
@@ -33,7 +35,7 @@ static int			pruned;
 static int			expanded;
 static int			expandedNQ;
 static int			depth;
-static clock_t		endTime;
+unsigned long long 	endTime;
 static int			moves = 0;
 std::unordered_map<Chess::State, int, StateHash> 
 					historyTable;
@@ -61,15 +63,16 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 
 	// Update vars
 	moves++;
-	pruned = 0;
-	expanded = 0;
+	pruned		= 0;
+	expanded	= 0;
+	expandedNQ	= 0;
 
 	// Calculate allowed time
 	if( moves > ( movesEstimate - movesThreshold ) )
 		{
 		movesEstimate++;
 		}
-	endTime = clock() + ( time / NS_PER_SEC / movesEstimate * CLOCKS_PER_SEC );
+	endTime = GET_TIME_MS() + ( time / NS_PER_MS / movesEstimate );
 
 	// Iteratively call minimax
 	int toIdx, fromIdx;
@@ -79,7 +82,7 @@ void id_minimax( Chess::State* root, Chess::State* bestAction, double time )
 		fallbackAction = *bestAction;
 		std::cout << "  Depth " << depth << ": ";
 		minimax( root, depth, quiescenceDepth, bestAction );
-		if( clock() > endTime )
+		if( GET_TIME_MS() > ( endTime - TIME_TOLERANCE ) )
 			{
 			*bestAction = fallbackAction;
 			std::cout << "Ran out of time!" << std::endl;
@@ -167,7 +170,7 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, int q
 	bestAction = frontier.front();
 	if( m == MIN )
 		{
-		for( runner = frontier.begin(); runner != frontier.end() && clock() < endTime; runner++ )
+		for( runner = frontier.begin(); runner != frontier.end() && GET_TIME_MS() < endTime; runner++ )
 			{
 			val = minMaxVal( *runner, alpha, beta, depth, qDepth, MAX, nullptr );
 			( *runner )->score = val;
@@ -191,7 +194,7 @@ static int minMaxVal( Chess::State* state, int alpha, int beta, int depth, int q
 
 	else // ( m == MAX )
 		{
-		for( runner = frontier.begin(); runner != frontier.end() && clock() < endTime; runner++ )
+		for( runner = frontier.begin(); runner != frontier.end() && GET_TIME_MS() < endTime; runner++ )
 			{
 			val = minMaxVal( *runner, alpha, beta, depth, qDepth, MIN, nullptr );
 
