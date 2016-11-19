@@ -31,22 +31,24 @@ int	movesEstimate;
 int	maxDepth;
 int histTableMaxSz;
 int quiescenceDepth;
+int useEndGameTables;
 
 // Definition map
 static std::map<std::string, int*> valConvert = {
-		{ "kingval",		&kingVal },
-		{ "queenval",		&queenVal },
-		{ "rookval",		&rookVal },
-		{ "knightval",		&knightVal },
-		{ "bishopval",		&bishopVal },
-		{ "pawnval",		&pawnVal },
-		{ "pawnpenalty",	&pawnPenalty },
-		{ "mobpenalty",		&mobPenalty },
-		{ "movesthreshold",	&movesThreshold },
-		{ "movesestimate",	&movesEstimate },
-		{ "maxdepth",		&maxDepth },
-		{ "histtablemaxsz", &histTableMaxSz },
-		{ "quiescencedepth",&quiescenceDepth }
+		{ "kingval",			&kingVal },
+		{ "queenval",			&queenVal },
+		{ "rookval",			&rookVal },
+		{ "knightval",			&knightVal },
+		{ "bishopval",			&bishopVal },
+		{ "pawnval",			&pawnVal },
+		{ "pawnpenalty",		&pawnPenalty },
+		{ "mobpenalty",			&mobPenalty },
+		{ "movesthreshold",		&movesThreshold },
+		{ "movesestimate",		&movesEstimate },
+		{ "maxdepth",			&maxDepth },
+		{ "histtablemaxsz",		&histTableMaxSz },
+		{ "quiescencedepth",	&quiescenceDepth },
+		{ "useendgametables",	&useEndGameTables }
 	};
 
 
@@ -97,5 +99,6 @@ void initGlobals()
 	maxDepth = 20;
 	histTableMaxSz = 100000;
 	quiescenceDepth = 2;
+	useEndGameTables = 0;
 	initialized = true;
 	}

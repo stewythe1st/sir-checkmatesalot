@@ -72,6 +72,18 @@
     <ClInclude Include="games\chess\globals.h">
       <Filter>chess</Filter>
     </ClInclude>
+    <ClInclude Include="games\chess\fathom\tbaccess.h">
+      <Filter>chess\fathom</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\fathom\tbconfig.h">
+      <Filter>chess\fathom</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\fathom\tbcore.h">
+      <Filter>chess\fathom</Filter>
+    </ClInclude>
+    <ClInclude Include="games\chess\fathom\tbprobe.h">
+      <Filter>chess\fathom</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -123,6 +135,15 @@
     <ClCompile Include="games\chess\globals.cpp">
       <Filter>chess</Filter>
     </ClCompile>
+    <ClCompile Include="games\chess\fathom\tbaccess.c">
+      <Filter>chess\fathom</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\fathom\tbcore.c">
+      <Filter>chess\fathom</Filter>
+    </ClCompile>
+    <ClCompile Include="games\chess\fathom\tbprobe.c">
+      <Filter>chess\fathom</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="joueur">
@@ -130,6 +151,9 @@
     </Filter>
     <Filter Include="chess">
       <UniqueIdentifier>{fb2cf2be-0d8b-44a1-9dc3-818877b7684c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="chess\fathom">
+      <UniqueIdentifier>{e0419712-82f3-418e-be86-dadcbfc821d6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

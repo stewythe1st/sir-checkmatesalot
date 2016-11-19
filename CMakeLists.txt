@@ -21,7 +21,8 @@ if(NOT Boost_FOUND)
 endif(NOT Boost_FOUND)
 
 # Find source files
-file(GLOB FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/games/*/*" "${CMAKE_CURRENT_SOURCE_DIR}/joueur/*")
+# I added the Fathom C files here. tbcore.c needs to be omitted because the idiot who wrote this Fathom program #include'ed it as a C file. There's probably a better way to glob the remaining ones and exclude that one, but I couldn't figure it out. Also, I'm not sure how to do a seperate compile command for C files so that I can get rid of the C++11 warning on them. Oh well...
+file(GLOB FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/games/chess/fathom/tbaccess.c" "${CMAKE_CURRENT_SOURCE_DIR}/games/chess/fathom/tbconfig.c" "${CMAKE_CURRENT_SOURCE_DIR}/games/chess/fathom/tbprobe.c" "${CMAKE_CURRENT_SOURCE_DIR}/games/*/*" "${CMAKE_CURRENT_SOURCE_DIR}/joueur/*")
 
 set(FILES ${FILES}
           gamesRegistry.h

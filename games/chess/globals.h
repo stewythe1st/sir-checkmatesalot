@@ -28,6 +28,7 @@ extern int movesEstimate;
 extern int maxDepth;
 extern int histTableMaxSz;
 extern int quiescenceDepth;
+extern int useEndGameTables;
 
 
 /******************************************************

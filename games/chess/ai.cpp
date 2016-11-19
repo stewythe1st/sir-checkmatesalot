@@ -12,9 +12,12 @@
 #include "ai.h"
 #include "minimax.h"
 #include "globals.h"
+#include "fathom/tbprobe.h"
+#include "fathom/tbaccess.h"
 #include <fstream>
 #include <iomanip>
 #include <algorithm>
+#include <unistd.h>
 
 
 /**************************************************************
@@ -113,7 +116,7 @@ void Chess::AI::ended( bool won, std::string reason )
 bool Chess::AI::runTurn()
 	{
 	std::cout << "----------------------------------------------" << std::endl;
-	std::cout << "Beginning turn " << this->game->currentTurn << " for " << this->game->currentPlayer->color << std::endl;
+	std::cout << "Beginning turn " << this->game->currentTurn << " for " << this->game->currentPlayer->color << "(" << this->game->currentPlayer->name << ")" << std::endl;
 
 	// Print board to console
 	printBoard();
@@ -140,24 +143,52 @@ bool Chess::AI::runTurn()
 	// Build initial state for this move
 	Chess::State initial( this );
 	Chess::State bestAction;
+	bool err = false;
+	bool endGame = false;
 
-	// Call minimax
-	std::cout << "Calculating Best Move:" << std::endl;
-	id_minimax( &initial, &bestAction, this->player->timeRemaining );
+	if( useEndGameTables )
+		{
+		// Check to see if we're in endgame
+		endGame = this->game->pieces.size() <= 5;			// Need better position checking than this
+		if( endGame ) 
+			{
 
-	// Make our chosen move
-	executeMove( &bestAction );
+			// Probe endgame table
+			Chess::State tablebaseMove = initial;
+			err = probeTablebases( &tablebaseMove );		// Still sometimes fails unexpectantly, or makes a dumb move (idk why...)
 
-	// Print node stats
-	int pruned, expanded, expandedNQ, depth;
-	getStats( pruned, expanded, expandedNQ, depth );
-	std::cout << "Statistics: " << std::endl;
-	std::cout << "  Pruned Nodes: " << pruned << std::endl;
-	std::cout << "  Expanded Nodes: " << expanded << std::endl;
-	std::cout << "  Expanded NonQuiescent Nodes: " << expandedNQ << std::endl;
-	int end_ms = start_ms - ( this->player->timeRemaining / 1000000 );
-	std::cout << "  Time Spent: " << end_ms / 1000 << "." << end_ms % 1000 << "s" << std::endl;
-	std::cout << "  Depth Achieved: " << depth - 1 << std::endl;
+			// Execute move, or fallback to minimax
+			if( err )
+				{
+				std::cout << "  Falling back to minimax" << std::endl;
+				}
+			else
+				{
+				executeMove( &tablebaseMove );
+				}
+			}
+		}
+
+	if( !useEndGameTables || err || !endGame )
+		{
+		// Call minimax
+		std::cout << "Calculating Best Move:" << std::endl;
+		id_minimax( &initial, &bestAction, this->player->timeRemaining );
+
+		// Make our chosen move
+		executeMove( &bestAction );
+
+		// Print node stats
+		int pruned, expanded, expandedNQ, depth;
+		getStats( pruned, expanded, expandedNQ, depth );
+		std::cout << "Statistics: " << std::endl;
+		std::cout << "  Pruned Nodes: " << pruned << std::endl;
+		std::cout << "  Expanded Nodes: " << expanded << std::endl;
+		std::cout << "  Expanded NonQuiescent Nodes: " << expandedNQ << std::endl;
+		int end_ms = start_ms - ( this->player->timeRemaining / 1000000 );
+		std::cout << "  Time Spent: " << end_ms / 1000 << "." << end_ms % 1000 << "s" << std::endl;
+		std::cout << "  Depth Achieved: " << depth - 1 << std::endl;
+		}
 
 	// Done
 	std::cout << "----------------------------------------------" << std::endl;
@@ -258,4 +289,61 @@ void Chess::AI::printBoard()
 
 		std::cout << str << std::endl;
 		}
+	}
+
+/**************************************************************
+* Probe Tablebases
+* Looks to endgame tablebases for best move.
+**************************************************************/
+bool Chess::AI::probeTablebases( Chess::State* rtnState )
+	{
+	std::cout << "Probing endgame tables:" << std::endl;
+	unsigned result, altResult;
+	bool err = false;
+
+	// Convert FEN string to tablebase pos struct
+	pos fathomPos;
+	parse_FEN( &fathomPos, this->game->fen.c_str() );
+
+	// Load tablebases
+	std::cout << "  Scanning for tablebases: ";
+	char filePath[ 1024 ];
+	if( getcwd( filePath, sizeof( filePath ) ) != NULL ) // getcwd() only works on linux systems, apparently.
+		{												 // If on a windows system, I guess it will just fail
+		strcat( filePath, "/games/chess/endgametables" );// and fallback to regular minimax.
+		}
+	else
+		{
+		err = true;
+		std::cout << " Error!";
+		}
+	if( !err )
+		{
+		err = !tb_init( filePath );
+		}
+	std::cout << std::endl;
+
+	// Probe tablebases for result
+	if( !err )
+		{
+		std::cout << "  Result: ";
+		result = tb_probe_root( fathomPos.white, fathomPos.black, fathomPos.kings, fathomPos.queens, fathomPos.rooks, fathomPos.bishops, fathomPos.knights, fathomPos.pawns, fathomPos.rule50, fathomPos.castling, fathomPos.ep, fathomPos.turn, &altResult );
+		}
+	if( result != TB_RESULT_FAILED )
+		{
+		std::cout << TB_GET_FROM( result ) << " to " << TB_GET_TO( result ) << std::endl;
+		
+		// Convert to/from to a chess state so that the move can be executed
+		rtnState->misc = 0;
+		rtnState->misc |= ( ( ( unsigned long long )TB_GET_FROM( result ) ) << FROMIDX_BITSHIFT );
+		rtnState->misc |= ( ( ( unsigned long long )TB_GET_TO( result ) ) << TOIDX_BITSHIFT );
+		}
+	else
+		{
+		err = true;
+		std::cout << "Failed!" << std::endl;
+		std::cout << "  Error: " << ( result == TB_RESULT_FAILED ) << ( result == TB_RESULT_CHECKMATE ) << ( result == TB_RESULT_STALEMATE ) << std::endl;
+		}
+
+	return err;
 	}

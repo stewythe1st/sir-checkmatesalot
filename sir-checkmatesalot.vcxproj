@@ -23,6 +23,10 @@
     <ClInclude Include="gamesRegistry.h" />
     <ClInclude Include="games\chess\ai.h" />
     <ClInclude Include="games\chess\chess.h" />
+    <ClInclude Include="games\chess\fathom\tbaccess.h" />
+    <ClInclude Include="games\chess\fathom\tbconfig.h" />
+    <ClInclude Include="games\chess\fathom\tbcore.h" />
+    <ClInclude Include="games\chess\fathom\tbprobe.h" />
     <ClInclude Include="games\chess\game.h" />
     <ClInclude Include="games\chess\gameManager.h" />
     <ClInclude Include="games\chess\gameObject.h" />
@@ -47,6 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="games\chess\ai.cpp" />
+    <ClCompile Include="games\chess\fathom\tbaccess.c" />
+    <ClCompile Include="games\chess\fathom\tbcore.c" />
+    <ClCompile Include="games\chess\fathom\tbprobe.c" />
     <ClCompile Include="games\chess\game.cpp" />
     <ClCompile Include="games\chess\gameManager.cpp" />
     <ClCompile Include="games\chess\gameObject.cpp" />
